@@ -1,10 +1,30 @@
 import { useState, useRef } from "react";
+import { searchJobs, logJobClick } from "./api";
 
 const SUGGESTIONS = ["engineer", "designer", "marketing", "data", "sales", "product", "devops", "intern"];
+
+function getSourceLabel(url = "") {
+  if (url.includes("greenhouse.io")) return "Greenhouse";
+  if (url.includes("lever.co")) return "Lever";
+  if (url.includes("ashbyhq.com")) return "Ashby";
+  return "Direct";
+}
+
+function timeAgo(iso) {
+  if (!iso) return "";
+  const diff = Date.now() - new Date(iso);
+  const h = Math.floor(diff / 3600000);
+  if (h < 1) return "Just now";
+  if (h < 24) return `${h}h ago`;
+  const d = Math.floor(h / 24);
+  if (d < 7) return `${d}d ago`;
+  return `${Math.floor(d / 7)}w ago`;
+}
 
 export default function Goojob() {
   const [query, setQuery] = useState("");
   const [results, setResults] = useState([]);
+  const [total, setTotal] = useState(0);
   const [searched, setSearched] = useState(false);
   const [loading, setLoading] = useState(false);
   const [filter, setFilter] = useState("all");
@@ -15,67 +35,30 @@ export default function Goojob() {
 
   const filteredSuggestions = SUGGESTIONS.filter(s => s.includes(query.toLowerCase()) && query.length > 0);
 
-  const handleSearch = async (q = query) => {
+  const handleSearch = async (q = query, activeFilter = filter) => {
     if (!q.trim()) return;
     setLoading(true);
     setSearched(true);
     setShowSuggestions(false);
     setError("");
-    setResults([]);
+
+    const remote = activeFilter === "remote" ? true : activeFilter === "onsite" ? false : undefined;
 
     try {
-      // Ask Claude to find real jobs with real URLs from Greenhouse/Lever/Ashby
-      const response = await fetch("https://api.anthropic.com/v1/messages", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          model: "claude-sonnet-4-20250514",
-          max_tokens: 1000,
-          system: `You are a job search engine assistant. When given a job search query, return ONLY a valid JSON array of 8 real job listings. 
-
-Each job must have a REAL, WORKING apply_url that goes directly to the specific job posting page — not a careers homepage. Use these real ATS URL patterns:
-- Greenhouse: https://boards.greenhouse.io/{company}/jobs/{real_job_id} (use real numeric IDs like 4771557, 6094845, 5476594)
-- Lever: https://jobs.lever.co/{company}/{real-uuid-style-id}
-- Ashby: https://jobs.ashbyhq.com/{company}/{real-uuid}
-- Company direct: e.g. https://stripe.com/jobs/listing/{slug}/{id}
-
-Only include companies that actually use Greenhouse, Lever, or Ashby ATS. Return ONLY the JSON array, no other text.
-
-JSON format:
-[{
-  "id": 1,
-  "title": "Job Title",
-  "company": "Company Name",
-  "location": "City, State or Remote",
-  "type": "Full-time",
-  "remote": true or false,
-  "logo": "First 2 letters of company",
-  "color": "#hexcolor",
-  "apply_url": "https://boards.greenhouse.io/company/jobs/1234567",
-  "posted": "X days ago",
-  "snippet": "2 sentence job description",
-  "source": "greenhouse" or "lever" or "ashby"
-}]`,
-          messages: [{ role: "user", content: `Find me 8 real job listings for: "${q}". Return only the JSON array.` }]
-        })
-      });
-
-      const data = await response.json();
-      const text = data.content?.[0]?.text || "[]";
-      const clean = text.replace(/```json|```/g, "").trim();
-      const jobs = JSON.parse(clean);
-      setResults(jobs);
+      const data = await searchJobs({ q, remote });
+      setResults(data.jobs || []);
+      setTotal(data.total || 0);
     } catch (e) {
       setError("Search failed. Please try again.");
+      setResults([]);
     } finally {
       setLoading(false);
     }
   };
 
-  const getFiltered = () => {
-    if (filter === "remote") return results.filter(j => j.remote);
-    if (filter === "onsite") return results.filter(j => !j.remote);
-    return results;
+  const handleFilter = (f) => {
+    setFilter(f);
+    if (searched && query) handleSearch(query, f);
   };
 
   const reset = () => {
@@ -83,11 +66,9 @@ JSON format:
     setTimeout(() => inputRef.current?.focus(), 100);
   };
 
-  const getSourceLabel = (url = "") => {
-    if (url.includes("greenhouse.io")) return "Greenhouse";
-    if (url.includes("lever.co")) return "Lever";
-    if (url.includes("ashbyhq.com")) return "Ashby";
-    return "Direct";
+  const handleApply = (job) => {
+    if (job.id) logJobClick(job.id);
+    window.open(job.apply_url, "_blank", "noopener,noreferrer");
   };
 
   return (
@@ -148,6 +129,7 @@ JSON format:
         .ld:nth-child(3) { animation-delay: 0.3s; }
         @keyframes bounce { 0%,80%,100%{transform:translateY(0)}40%{transform:translateY(-12px)} }
         .error-box { background: #FFF3F3; border: 1.5px solid #FFCECE; color: #C00; border-radius: 10px; padding: 14px 18px; margin-bottom: 16px; font-size: 14px; }
+        .empty { text-align: center; padding: 60px 20px; color: #888; }
         .footer-note { margin-top: 48px; font-size: 12px; color: #CCC; text-align: center; line-height: 1.6; }
         @media (max-width: 600px) {
           .top-bar { padding: 10px 14px; }
@@ -224,7 +206,7 @@ JSON format:
 
           <div className="filters">
             {[["all","All Jobs"],["remote","🌐 Remote"],["onsite","🏢 On-site"]].map(([key, label]) => (
-              <button key={key} className={`filter-btn ${filter === key ? "active" : ""}`} onClick={() => setFilter(key)}>{label}</button>
+              <button key={key} className={`filter-btn ${filter === key ? "active" : ""}`} onClick={() => handleFilter(key)}>{label}</button>
             ))}
           </div>
 
@@ -232,29 +214,31 @@ JSON format:
             {loading ? (
               <div className="loading-wrap">
                 <div className="loader"><div className="ld"/><div className="ld"/><div className="ld"/></div>
-                <p style={{ fontSize: 13, color: "#AAA" }}>Finding real job links...</p>
+                <p style={{ fontSize: 13, color: "#AAA" }}>Finding direct job links...</p>
               </div>
             ) : (
               <>
                 {error && <div className="error-box">{error}</div>}
-                {results.length > 0 && (
-                  <p className="results-meta">{getFiltered().length} jobs for "<strong>{query}</strong>" — each Apply Now goes directly to that specific role</p>
+                {!error && results.length > 0 && (
+                  <p className="results-meta">{total} jobs for "<strong>{query}</strong>" — each Apply Now goes directly to that specific role</p>
                 )}
-                {getFiltered().map((job, i) => (
-                  <div key={i} className="job-card">
+                {results.map((job, i) => (
+                  <div key={job.id || i} className="job-card">
                     <div className="job-top">
-                      <div className="company-logo" style={{ background: job.color || "#555" }}>{job.logo}</div>
+                      <div className="company-logo" style={{ background: job.logo_color || "#555" }}>
+                        {(job.company || "?")[0]}
+                      </div>
                       <div style={{ flex: 1, minWidth: 0 }}>
                         <div className="job-title">{job.title}</div>
                         <div className="job-company">{job.company} · {job.location}</div>
                         <div className="job-tags">
-                          <span className="tag">{job.type}</span>
+                          <span className="tag">{job.type || "Full-time"}</span>
                           {job.remote && <span className="tag remote">Remote</span>}
                         </div>
                       </div>
                     </div>
 
-                    <p className="job-snippet">{job.snippet}</p>
+                    {job.description && <p className="job-snippet">{job.description.slice(0, 180)}...</p>}
 
                     <div className="job-link-row">
                       <span style={{ fontSize: 13 }}>🔗</span>
@@ -264,17 +248,22 @@ JSON format:
 
                     <div className="job-footer">
                       <div>
-                        <div className="job-posted">{job.posted}</div>
+                        <div className="job-posted">{timeAgo(job.posted_at)}</div>
                         <div className="direct-badge">
                           <span className="direct-dot"/> Direct link to this specific role
                         </div>
                       </div>
-                      <a className="apply-btn" href={job.apply_url} target="_blank" rel="noopener noreferrer">
+                      <button className="apply-btn" onClick={() => handleApply(job)}>
                         Apply Now ↗
-                      </a>
+                      </button>
                     </div>
                   </div>
                 ))}
+                {!loading && !error && results.length === 0 && (
+                  <div className="empty">
+                    <p>No jobs found for "<strong>{query}</strong>". Try another keyword.</p>
+                  </div>
+                )}
               </>
             )}
           </div>
