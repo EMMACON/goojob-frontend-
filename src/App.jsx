@@ -43,6 +43,9 @@ export default function Goojob() {
   const [total, setTotal] = useState(0);
   const [searched, setSearched] = useState(false);
   const [loading, setLoading] = useState(false);
+  const [loadingMore, setLoadingMore] = useState(false);
+  const [page, setPage] = useState(1);
+  const [hasMore, setHasMore] = useState(false);
   const [filter, setFilter] = useState("all");
   const [focused, setFocused] = useState(false);
   const [showSuggestions, setShowSuggestions] = useState(false);
@@ -66,14 +69,34 @@ export default function Goojob() {
     const remote = activeFilter === "remote" ? true : activeFilter === "onsite" ? false : undefined;
 
     try {
-      const data = await searchJobs({ q, remote });
+      const data = await searchJobs({ q, remote, page: 1 });
       setResults(data.jobs || []);
       setTotal(data.total || 0);
+      setPage(1);
+      setHasMore(Boolean(data.hasMore));
     } catch (e) {
       setError("Search failed. Please try again.");
       setResults([]);
     } finally {
       setLoading(false);
+    }
+  };
+
+  const loadMore = async () => {
+    if (loadingMore || !hasMore) return;
+    setLoadingMore(true);
+    const nextPage = page + 1;
+    const remote = filter === "remote" ? true : filter === "onsite" ? false : undefined;
+    try {
+      const data = await searchJobs({ q: query, remote, page: nextPage });
+      setResults((prev) => [...prev, ...(data.jobs || [])]);
+      setPage(nextPage);
+      setHasMore(Boolean(data.hasMore));
+    } catch (e) {
+      // keep what we have; just stop offering more
+      setHasMore(false);
+    } finally {
+      setLoadingMore(false);
     }
   };
 
@@ -153,6 +176,9 @@ export default function Goojob() {
         .apply-btn { background: #111; color: #fff; border: none; border-radius: 24px; padding: 10px 22px; font-size: 14px; font-weight: 600; cursor: pointer; font-family: 'DM Sans', sans-serif; transition: all 0.15s; text-decoration: none; display: inline-flex; align-items: center; gap: 6px; }
         .apply-btn:hover { background: #333; }
         .loading-wrap { display: flex; flex-direction: column; align-items: center; padding: 80px 20px; gap: 16px; }
+        .load-more-btn { display: block; margin: 28px auto 8px; padding: 13px 32px; background: #fff; border: 1.5px solid #1a1a1a; border-radius: 100px; font-size: 15px; font-weight: 600; cursor: pointer; transition: all .15s; }
+        .load-more-btn:hover:not(:disabled) { background: #1a1a1a; color: #fff; }
+        .load-more-btn:disabled { opacity: .5; cursor: default; }
         .loader { display: flex; gap: 6px; }
         .ld { width: 9px; height: 9px; border-radius: 50%; background: #111; animation: bounce 0.8s infinite; }
         .ld:nth-child(2) { animation-delay: 0.15s; }
@@ -299,6 +325,11 @@ export default function Goojob() {
                   <div className="empty">
                     <p>No jobs found for "<strong>{query}</strong>". Try another keyword.</p>
                   </div>
+                )}
+                {!loading && !error && results.length > 0 && hasMore && (
+                  <button className="load-more-btn" onClick={loadMore} disabled={loadingMore}>
+                    {loadingMore ? "Loading…" : "Load more jobs"}
+                  </button>
                 )}
               </>
             )}
