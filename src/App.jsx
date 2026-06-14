@@ -3,13 +3,27 @@ import { searchJobs, logJobClick } from "./api";
 
 const SUGGESTIONS = ["engineer", "designer", "marketing", "data", "sales", "product", "devops", "intern"];
 
-function getSourceLabel(url = "", sourceType = "") {
-  if (sourceType === "aggregator") return "Adzuna";
+function getSourceLabel(url = "", sourceType = "", source = "") {
+  if (sourceType === "aggregator") {
+    if (source === "remotive") return "Remotive";
+    if (source === "remoteok") return "RemoteOK";
+    if (source === "arbeitnow") return "Arbeitnow";
+    if (source === "adzuna") return "Adzuna";
+    return "Listing";
+  }
   if (url.includes("greenhouse.io")) return "Greenhouse";
   if (url.includes("lever.co")) return "Lever";
   if (url.includes("ashbyhq.com")) return "Ashby";
   if (url.includes("workable.com")) return "Workable";
   return "Direct";
+}
+
+function getViaLabel(source = "") {
+  if (source === "remotive") return "Via Remotive";
+  if (source === "remoteok") return "Via RemoteOK";
+  if (source === "arbeitnow") return "Via Arbeitnow";
+  if (source === "adzuna") return "Via Adzuna";
+  return "Via listing";
 }
 
 function timeAgo(iso) {
@@ -259,7 +273,7 @@ export default function Goojob() {
                     <div className="job-link-row">
                       <span style={{ fontSize: 13 }}>🔗</span>
                       <span className="job-link-url">{job.apply_url}</span>
-                      <span className="job-link-source">{getSourceLabel(job.apply_url, job.source_type)}</span>
+                      <span className="job-link-source">{getSourceLabel(job.apply_url, job.source_type, job.source)}</span>
                     </div>
 
                     <div className="job-footer">
@@ -267,7 +281,7 @@ export default function Goojob() {
                         <div className="job-posted">{timeAgo(job.posted_at)}</div>
                         {job.source_type === "aggregator" ? (
                           <div className="via-badge">
-                            <span className="via-dot"/> Via Adzuna — broader listing
+                            <span className="via-dot"/> {getViaLabel(job.source)} — broader listing
                           </div>
                         ) : (
                           <div className="direct-badge">
