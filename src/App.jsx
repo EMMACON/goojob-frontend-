@@ -3,10 +3,12 @@ import { searchJobs, logJobClick } from "./api";
 
 const SUGGESTIONS = ["engineer", "designer", "marketing", "data", "sales", "product", "devops", "intern"];
 
-function getSourceLabel(url = "") {
+function getSourceLabel(url = "", sourceType = "") {
+  if (sourceType === "aggregator") return "Adzuna";
   if (url.includes("greenhouse.io")) return "Greenhouse";
   if (url.includes("lever.co")) return "Lever";
   if (url.includes("ashbyhq.com")) return "Ashby";
+  if (url.includes("workable.com")) return "Workable";
   return "Direct";
 }
 
@@ -132,6 +134,8 @@ export default function Goojob() {
         .job-posted { font-size: 12px; color: #AAA; }
         .direct-badge { font-size: 11px; color: #1A7A32; display: flex; align-items: center; gap: 4px; margin-top: 3px; font-weight: 500; }
         .direct-dot { width: 6px; height: 6px; border-radius: 50%; background: #C1FF4E; border: 1px solid #1A7A32; display: inline-block; }
+        .via-badge { font-size: 11px; color: #8A6D1A; display: flex; align-items: center; gap: 4px; margin-top: 3px; font-weight: 500; }
+        .via-dot { width: 6px; height: 6px; border-radius: 50%; background: #FFD966; border: 1px solid #8A6D1A; display: inline-block; }
         .apply-btn { background: #111; color: #fff; border: none; border-radius: 24px; padding: 10px 22px; font-size: 14px; font-weight: 600; cursor: pointer; font-family: 'DM Sans', sans-serif; transition: all 0.15s; text-decoration: none; display: inline-flex; align-items: center; gap: 6px; }
         .apply-btn:hover { background: #333; }
         .loading-wrap { display: flex; flex-direction: column; align-items: center; padding: 80px 20px; gap: 16px; }
@@ -255,15 +259,21 @@ export default function Goojob() {
                     <div className="job-link-row">
                       <span style={{ fontSize: 13 }}>🔗</span>
                       <span className="job-link-url">{job.apply_url}</span>
-                      <span className="job-link-source">{getSourceLabel(job.apply_url)}</span>
+                      <span className="job-link-source">{getSourceLabel(job.apply_url, job.source_type)}</span>
                     </div>
 
                     <div className="job-footer">
                       <div>
                         <div className="job-posted">{timeAgo(job.posted_at)}</div>
-                        <div className="direct-badge">
-                          <span className="direct-dot"/> Direct link to this specific role
-                        </div>
+                        {job.source_type === "aggregator" ? (
+                          <div className="via-badge">
+                            <span className="via-dot"/> Via Adzuna — broader listing
+                          </div>
+                        ) : (
+                          <div className="direct-badge">
+                            <span className="direct-dot"/> Direct link to this specific role
+                          </div>
+                        )}
                       </div>
                       <button className="apply-btn" onClick={() => handleApply(job)}>
                         Apply Now ↗
