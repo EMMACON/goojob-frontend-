@@ -1,32 +1,50 @@
-const BASE = import.meta.env.VITE_API_URL || "http://localhost:3001";
+// ─────────────────────────────────────────────────────────────
+// API client — talks to the Goojob backend on Railway.
+// ─────────────────────────────────────────────────────────────
+
+const API_BASE =
+  import.meta.env.VITE_API_URL || "https://goojob-backend-production.up.railway.app";
 
 /**
- * Search jobs
- * @param {Object} params - { q, location, type, remote, page }
+ * Search jobs. Supports pagination via `page`.
+ * Returns { jobs, total, page, hasMore, directCount, aggregatorCount, ... }
  */
-export async function searchJobs({ q, location = "", type = "", remote, page = 1 }) {
-  const params = new URLSearchParams({ q, page });
+export async function searchJobs({ q, remote, location, type, page = 1 }) {
+  const params = new URLSearchParams();
+  params.set("q", q);
+  if (remote === true) params.set("remote", "true");
+  if (remote === false) params.set("remote", "false");
   if (location) params.set("location", location);
   if (type) params.set("type", type);
-  if (remote !== undefined) params.set("remote", remote);
+  params.set("page", String(page));
 
-  const res = await fetch(`${BASE}/api/jobs/search?${params}`);
-  if (!res.ok) throw new Error("Search failed");
+  const res = await fetch(`${API_BASE}/api/jobs/search?${params.toString()}`);
+  if (!res.ok) throw new Error("Search request failed");
   return res.json();
 }
 
 /**
- * Get featured jobs for homepage
+ * Log a click on a job (fire-and-forget; ignores errors).
+ */
+export async function logJobClick(jobId) {
+  try {
+    await fetch(`${API_BASE}/api/jobs/${encodeURIComponent(jobId)}/click`, {
+      method: "POST",
+    });
+  } catch (e) {
+    // non-critical
+  }
+}
+
+/**
+ * Featured jobs for the homepage (optional).
  */
 export async function getFeaturedJobs() {
-  const res = await fetch(`${BASE}/api/jobs/featured`);
-  if (!res.ok) return { jobs: [] };
-  return res.json();
-}
-
-/**
- * Log a job click (fire and forget)
- */
-export function logJobClick(jobId) {
-  fetch(`${BASE}/api/jobs/${jobId}/click`, { method: "POST" }).catch(() => {});
+  try {
+    const res = await fetch(`${API_BASE}/api/jobs/featured`);
+    if (!res.ok) return { jobs: [] };
+    return res.json();
+  } catch (e) {
+    return { jobs: [] };
+  }
 }
