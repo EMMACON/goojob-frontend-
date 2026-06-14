@@ -42,6 +42,11 @@ export default function Goojob() {
     setShowSuggestions(false);
     setError("");
 
+    // Track what people search for in Google Analytics
+    if (window.gtag) {
+      window.gtag("event", "search", { search_term: q.trim(), filter: activeFilter });
+    }
+
     const remote = activeFilter === "remote" ? true : activeFilter === "onsite" ? false : undefined;
 
     try {
@@ -67,6 +72,13 @@ export default function Goojob() {
   };
 
   const handleApply = (job) => {
+    // Track which jobs people apply to in Google Analytics
+    if (window.gtag) {
+      window.gtag("event", "apply_click", {
+        job_title: job.title || "",
+        company: job.company || "",
+      });
+    }
     if (job.id) logJobClick(job.id);
     window.open(job.apply_url, "_blank", "noopener,noreferrer");
   };
