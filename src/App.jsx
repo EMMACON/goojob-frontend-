@@ -1,5 +1,5 @@
-import { useState, useRef } from "react";
-import { searchJobs, logJobClick } from "./api";
+import { useState, useRef, useEffect } from "react";
+import { searchJobs, logJobClick, getRecentJobs } from "./api";
 
 const SUGGESTIONS = ["engineer", "designer", "marketing", "data", "sales", "product", "devops", "intern"];
 
@@ -50,6 +50,18 @@ export default function Goojob() {
   const [focused, setFocused] = useState(false);
   const [showSuggestions, setShowSuggestions] = useState(false);
   const [error, setError] = useState("");
+  const [recentJobs, setRecentJobs] = useState([]);
+  const [loadingRecent, setLoadingRecent] = useState(true);
+
+  // Load newest jobs on first visit (before any search)
+  useEffect(() => {
+    let active = true;
+    getRecentJobs()
+      .then((data) => { if (active) setRecentJobs(data.jobs || []); })
+      .catch(() => {})
+      .finally(() => { if (active) setLoadingRecent(false); });
+    return () => { active = false; };
+  }, []);
   const inputRef = useRef(null);
 
   const filteredSuggestions = SUGGESTIONS.filter(s => s.includes(query.toLowerCase()) && query.length > 0);
@@ -179,6 +191,14 @@ export default function Goojob() {
         .load-more-btn { display: block; margin: 28px auto 8px; padding: 13px 32px; background: #fff; border: 1.5px solid #1a1a1a; border-radius: 100px; font-size: 15px; font-weight: 600; cursor: pointer; transition: all .15s; }
         .load-more-btn:hover:not(:disabled) { background: #1a1a1a; color: #fff; }
         .load-more-btn:disabled { opacity: .5; cursor: default; }
+        .latest-section { margin: 44px auto 0; max-width: 640px; width: 100%; text-align: left; }
+        .latest-heading { font-size: 15px; font-weight: 700; color: #555; margin: 0 0 14px; text-transform: uppercase; letter-spacing: .5px; }
+        .latest-list { display: flex; flex-direction: column; gap: 10px; }
+        .latest-card { display: flex; align-items: center; justify-content: space-between; gap: 12px; padding: 14px 18px; background: #fff; border: 1px solid #ECECE6; border-radius: 14px; cursor: pointer; transition: all .15s; }
+        .latest-card:hover { border-color: #1a1a1a; transform: translateY(-1px); }
+        .latest-title { font-size: 15px; font-weight: 600; color: #1a1a1a; }
+        .latest-company { font-size: 13px; color: #888; margin-top: 2px; }
+        .latest-apply { font-size: 13px; font-weight: 600; color: #1A7A32; flex-shrink: 0; }
         .loader { display: flex; gap: 6px; }
         .ld { width: 9px; height: 9px; border-radius: 50%; background: #111; animation: bounce 0.8s infinite; }
         .ld:nth-child(2) { animation-delay: 0.15s; }
@@ -236,6 +256,26 @@ export default function Goojob() {
             Every Apply Now button goes to the exact job posting page.<br/>
             Not a careers homepage. The specific role. Directly.
           </p>
+
+          {/* Latest jobs shown right away, before any search */}
+          {!loadingRecent && recentJobs.length > 0 && (
+            <div className="latest-section">
+              <h2 className="latest-heading">Latest jobs</h2>
+              <div className="latest-list">
+                {recentJobs.map((job, i) => (
+                  <div key={job.id || i} className="latest-card" onClick={() => handleApply(job)}>
+                    <div className="latest-card-main">
+                      <div className="latest-title">{job.title}</div>
+                      <div className="latest-company">
+                        {job.company}{job.location ? ` · ${job.location}` : ""}
+                      </div>
+                    </div>
+                    <div className="latest-apply">Apply ↗</div>
+                  </div>
+                ))}
+              </div>
+            </div>
+          )}
         </div>
       ) : (
         <>
