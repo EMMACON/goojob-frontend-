@@ -1,0 +1,195 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<meta name="robots" content="noindex, nofollow" />
+<title>Goojob Admin</title>
+<style>
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; background: #F5F5F0; color: #1a1a1a; padding: 20px; max-width: 760px; margin: 0 auto; }
+  h1 { font-size: 22px; margin-bottom: 4px; }
+  .sub { color: #888; font-size: 13px; margin-bottom: 24px; }
+  .card { background: #fff; border: 1px solid #E5E5DE; border-radius: 16px; padding: 20px; margin-bottom: 20px; }
+  .card h2 { font-size: 15px; text-transform: uppercase; letter-spacing: .5px; color: #555; margin-bottom: 14px; }
+  label { display: block; font-size: 13px; font-weight: 600; margin: 12px 0 4px; }
+  input, textarea, select { width: 100%; padding: 11px 13px; border: 1px solid #DDD; border-radius: 10px; font-size: 14px; font-family: inherit; }
+  textarea { min-height: 90px; resize: vertical; }
+  .row { display: flex; gap: 12px; }
+  .row > div { flex: 1; }
+  button { background: #1a1a1a; color: #fff; border: none; padding: 12px 22px; border-radius: 100px; font-size: 14px; font-weight: 600; cursor: pointer; margin-top: 16px; }
+  button:hover { opacity: .88; }
+  button.secondary { background: #fff; color: #1a1a1a; border: 1.5px solid #1a1a1a; }
+  button.danger { background: #fff; color: #C0392B; border: 1px solid #E5C0BB; padding: 6px 14px; font-size: 12px; margin: 0; }
+  .msg { padding: 10px 14px; border-radius: 10px; font-size: 14px; margin-top: 14px; display: none; }
+  .msg.ok { background: #E6F4EA; color: #1A7A32; display: block; }
+  .msg.err { background: #FDECEA; color: #C0392B; display: block; }
+  .job-row { display: flex; justify-content: space-between; align-items: center; gap: 12px; padding: 12px 0; border-bottom: 1px solid #EEE; }
+  .job-row:last-child { border-bottom: none; }
+  .job-info { font-size: 14px; }
+  .job-info .c { color: #888; font-size: 12px; }
+  .hint { font-size: 12px; color: #999; margin-top: 4px; }
+  .gate { text-align: center; padding: 60px 20px; }
+  #app { display: none; }
+</style>
+</head>
+<body>
+
+<!-- Password gate -->
+<div class="gate" id="gate">
+  <h1>Goojob Admin</h1>
+  <p class="sub">Enter your admin key to continue</p>
+  <input type="password" id="keyInput" placeholder="Admin key" style="max-width:320px;margin:0 auto;" />
+  <br><button onclick="unlock()">Unlock</button>
+  <div class="msg err" id="gateMsg"></div>
+</div>
+
+<!-- Admin app -->
+<div id="app">
+  <h1>Goojob Admin</h1>
+  <p class="sub">Add curated jobs — they appear on the site immediately.</p>
+
+  <!-- Single job form -->
+  <div class="card">
+    <h2>Add one job</h2>
+    <label>Job title *</label>
+    <input id="f_title" placeholder="Senior Video Editor" />
+    <div class="row">
+      <div><label>Company *</label><input id="f_company" placeholder="Acme Studios" /></div>
+      <div><label>Location</label><input id="f_location" placeholder="Remote - Worldwide" /></div>
+    </div>
+    <div class="row">
+      <div><label>Remote?</label>
+        <select id="f_remote"><option value="false">No / Hybrid</option><option value="true">Yes, remote</option></select>
+      </div>
+      <div><label>Type</label><input id="f_type" placeholder="Full-time" /></div>
+    </div>
+    <label>Apply URL * (direct company link)</label>
+    <input id="f_url" placeholder="https://company.com/careers/the-job" />
+    <div class="hint">Must be the company's own job page, starting with https://</div>
+    <label>Description</label>
+    <textarea id="f_desc" placeholder="Short summary of the role..."></textarea>
+    <button onclick="addOne()">Add job</button>
+    <div class="msg" id="formMsg"></div>
+  </div>
+
+  <!-- Bulk paste -->
+  <div class="card">
+    <h2>Add many at once (bulk)</h2>
+    <p class="hint" style="margin-bottom:8px;">One job per line. Separate fields with a pipe <b>|</b> in this order:<br>
+      <b>title | company | apply_url | location | remote | type | description</b><br>
+      Only the first three are required. Example:<br>
+      <code>Video Editor | Acme | https://acme.com/jobs/1 | Remote | true | Full-time | Edit our videos</code>
+    </p>
+    <textarea id="bulk" style="min-height:150px;" placeholder="Video Editor | Acme | https://acme.com/jobs/1 | Remote | true | Full-time | Edit videos
+Motion Designer | Bright | https://bright.com/jobs/2 | London | false | Contract | Motion graphics"></textarea>
+    <button onclick="addBulk()">Add all</button>
+    <div class="msg" id="bulkMsg"></div>
+  </div>
+
+  <!-- Existing manual jobs -->
+  <div class="card">
+    <h2>Your added jobs</h2>
+    <button class="secondary" onclick="loadJobs()" style="margin:0 0 12px;">Refresh list</button>
+    <div id="jobList"><p class="hint">Click "Refresh list" to load.</p></div>
+  </div>
+</div>
+
+<script>
+  const API = "https://goojob-backend-production.up.railway.app";
+  let ADMIN_KEY = "";
+
+  function unlock() {
+    const k = document.getElementById("keyInput").value.trim();
+    if (!k) return;
+    ADMIN_KEY = k;
+    // Verify by attempting to list jobs
+    fetch(API + "/api/admin/jobs", { headers: { "x-admin-key": k } })
+      .then(r => {
+        if (r.status === 401) { showGateErr("Wrong key."); return null; }
+        return r.json();
+      })
+      .then(d => {
+        if (d) {
+          document.getElementById("gate").style.display = "none";
+          document.getElementById("app").style.display = "block";
+          renderJobs(d.jobs || []);
+        }
+      })
+      .catch(() => showGateErr("Could not connect. Try again."));
+  }
+  function showGateErr(m){ const e=document.getElementById("gateMsg"); e.textContent=m; e.className="msg err"; }
+
+  function msg(id, text, ok) {
+    const e = document.getElementById(id);
+    e.textContent = text;
+    e.className = "msg " + (ok ? "ok" : "err");
+  }
+
+  function addOne() {
+    const job = {
+      title: v("f_title"), company: v("f_company"), location: v("f_location"),
+      remote: document.getElementById("f_remote").value, type: v("f_type"),
+      apply_url: v("f_url"), description: v("f_desc"),
+    };
+    post([job], "formMsg", () => {
+      ["f_title","f_company","f_location","f_type","f_url","f_desc"].forEach(id => document.getElementById(id).value = "");
+    });
+  }
+
+  function addBulk() {
+    const lines = v("bulk").split("\n").map(l => l.trim()).filter(Boolean);
+    const jobs = lines.map(line => {
+      const p = line.split("|").map(s => s.trim());
+      return { title: p[0], company: p[1], apply_url: p[2], location: p[3]||"", remote: p[4]||"false", type: p[5]||"", description: p[6]||"" };
+    });
+    post(jobs, "bulkMsg", () => { document.getElementById("bulk").value = ""; });
+  }
+
+  function post(jobs, msgId, onOk) {
+    fetch(API + "/api/admin/jobs", {
+      method: "POST",
+      headers: { "Content-Type": "application/json", "x-admin-key": ADMIN_KEY },
+      body: JSON.stringify({ jobs }),
+    })
+    .then(r => r.json())
+    .then(d => {
+      if (d.error) { msg(msgId, d.error, false); return; }
+      let t = `Added ${d.added} job${d.added===1?"":"s"}.`;
+      if (d.rejected) t += ` ${d.rejected} skipped (missing title/company/valid link).`;
+      msg(msgId, t, true);
+      if (onOk) onOk();
+      loadJobs();
+    })
+    .catch(() => msg(msgId, "Request failed. Check connection.", false));
+  }
+
+  function loadJobs() {
+    fetch(API + "/api/admin/jobs", { headers: { "x-admin-key": ADMIN_KEY } })
+      .then(r => r.json())
+      .then(d => renderJobs(d.jobs || []))
+      .catch(() => {});
+  }
+
+  function renderJobs(jobs) {
+    const el = document.getElementById("jobList");
+    if (!jobs.length) { el.innerHTML = '<p class="hint">No jobs added yet.</p>'; return; }
+    el.innerHTML = jobs.map(j => `
+      <div class="job-row">
+        <div class="job-info">${esc(j.title)}<div class="c">${esc(j.company)}${j.location ? " · " + esc(j.location) : ""}</div></div>
+        <button class="danger" onclick="del('${encodeURIComponent(j.external_id)}')">Delete</button>
+      </div>`).join("");
+  }
+
+  function del(extId) {
+    if (!confirm("Delete this job?")) return;
+    fetch(API + "/api/admin/jobs/" + extId, { method: "DELETE", headers: { "x-admin-key": ADMIN_KEY } })
+      .then(r => r.json()).then(() => loadJobs()).catch(() => {});
+  }
+
+  function v(id){ return document.getElementById(id).value.trim(); }
+  function esc(s){ return String(s||"").replace(/[&<>"]/g, c => ({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c])); }
+  document.getElementById("keyInput").addEventListener("keydown", e => { if(e.key==="Enter") unlock(); });
+</script>
+</body>
+</html>
