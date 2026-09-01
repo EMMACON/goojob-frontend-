@@ -37,6 +37,19 @@ export async function logJobClick(jobId) {
 }
 
 /**
+ * Newest jobs across all categories for the homepage.
+ */
+export async function getRecentJobs() {
+  try {
+    const res = await fetch(`${API_BASE}/api/jobs/recent`);
+    if (!res.ok) return { jobs: [] };
+    return res.json();
+  } catch (e) {
+    return { jobs: [] };
+  }
+}
+
+/**
  * Featured jobs for the homepage (optional).
  */
 export async function getFeaturedJobs() {
