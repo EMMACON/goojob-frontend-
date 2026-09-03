@@ -67,6 +67,18 @@ export default function Goojob() {
   const filteredSuggestions = SUGGESTIONS.filter(s => s.includes(query.toLowerCase()) && query.length > 0);
 
   const handleSearch = async (q = query, activeFilter = filter) => {
+    // If the ENTIRE typed query is a work-arrangement word (not a job
+    // title), treat it as the Remote/On-site filter instead of a
+    // doomed keyword search — same shortcut whether typed or tapped.
+    const trimmed = q.trim().toLowerCase();
+    const workTypeMap = { remote: "remote", remotely: "remote", wfh: "remote", anywhere: "remote", onsite: "onsite", "on-site": "onsite", office: "onsite" };
+    if (workTypeMap[trimmed] && activeFilter === "all") {
+      activeFilter = workTypeMap[trimmed];
+      q = "";
+      setQuery("");
+      setFilter(activeFilter);
+    }
+
     // Empty query is fine IF a remote/on-site filter is active — that
     // means "browse all jobs of this type". Only block truly empty
     // searches with no filter at all.
@@ -258,7 +270,24 @@ export default function Goojob() {
 
           <div className="hero-chips">
             {["Engineer", "Designer", "Marketing", "Sales", "Remote", "Data", "Internship"].map(chip => (
-              <button key={chip} className="hero-chip" onClick={() => { setQuery(chip); handleSearch(chip); }}>{chip}</button>
+              <button
+                key={chip}
+                className="hero-chip"
+                onClick={() => {
+                  // "Remote" is a work-arrangement, not a job title — tapping
+                  // it should browse all remote jobs via the filter, not
+                  // search for the literal word "Remote" in job titles.
+                  if (chip === "Remote") {
+                    setQuery("");
+                    setFilter("remote");
+                    setSearched(true);
+                    handleSearch("", "remote");
+                  } else {
+                    setQuery(chip);
+                    handleSearch(chip);
+                  }
+                }}
+              >{chip}</button>
             ))}
           </div>
 
