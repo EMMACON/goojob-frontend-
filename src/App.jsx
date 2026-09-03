@@ -67,7 +67,10 @@ export default function Goojob() {
   const filteredSuggestions = SUGGESTIONS.filter(s => s.includes(query.toLowerCase()) && query.length > 0);
 
   const handleSearch = async (q = query, activeFilter = filter) => {
-    if (!q.trim()) return;
+    // Empty query is fine IF a remote/on-site filter is active — that
+    // means "browse all jobs of this type". Only block truly empty
+    // searches with no filter at all.
+    if (!q.trim() && activeFilter === "all") return;
     setLoading(true);
     setSearched(true);
     setShowSuggestions(false);
@@ -75,7 +78,7 @@ export default function Goojob() {
 
     // Track what people search for in Google Analytics
     if (window.gtag) {
-      window.gtag("event", "search", { search_term: q.trim(), filter: activeFilter });
+      window.gtag("event", "search", { search_term: q.trim() || `[filter:${activeFilter}]`, filter: activeFilter });
     }
 
     const remote = activeFilter === "remote" ? true : activeFilter === "onsite" ? false : undefined;
@@ -114,7 +117,14 @@ export default function Goojob() {
 
   const handleFilter = (f) => {
     setFilter(f);
-    if (searched && query) handleSearch(query, f);
+    // Re-run whenever we're already viewing results — even with an
+    // empty query box — so toggling Remote/On-site always refreshes
+    // what's shown instead of just changing the button highlight.
+    // The backend now allows an empty query when a remote/on-site
+    // filter is set (it means "browse all jobs of this type").
+    if (searched) {
+      handleSearch(query, f);
+    }
   };
 
   const reset = () => {
