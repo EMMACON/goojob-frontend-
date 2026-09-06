@@ -141,6 +141,8 @@ export default function Goojob() {
 
   const reset = () => {
     setQuery(""); setResults([]); setSearched(false); setFilter("all"); setError("");
+    setTotal(0); setPage(1); setHasMore(false); setShowSuggestions(false);
+    window.scrollTo({ top: 0, behavior: "smooth" });
     setTimeout(() => inputRef.current?.focus(), 100);
   };
 
@@ -186,6 +188,8 @@ export default function Goojob() {
         .filters { display: flex; gap: 8px; padding: 14px 20px 0; flex-wrap: wrap; }
         .filter-btn { padding: 6px 16px; border-radius: 20px; border: 1.5px solid #DDDDD8; font-size: 13px; font-family: 'DM Sans', sans-serif; cursor: pointer; background: transparent; transition: all 0.15s; }
         .filter-btn.active { background: #111; color: #fff; border-color: #111; }
+        .home-btn { padding: 6px 16px; border-radius: 20px; border: 1.5px solid #111; background: #fff; color: #111; font-size: 13px; font-weight: 600; font-family: 'DM Sans', sans-serif; cursor: pointer; transition: all 0.15s; margin-right: 4px; }
+        .home-btn:hover { background: #111; color: #fff; }
         .results-wrap { max-width: 700px; margin: 0 auto; padding: 16px 20px 80px; }
         .results-meta { font-size: 13px; color: #888; margin-bottom: 18px; }
         .job-card { background: #fff; border: 1.5px solid #EBEBEB; border-radius: 16px; padding: 20px; margin-bottom: 12px; transition: all 0.15s; }
@@ -307,6 +311,8 @@ export default function Goojob() {
                       <div className="latest-title">{job.title}</div>
                       <div className="latest-company">
                         {job.company}{job.location ? ` · ${job.location}` : ""}
+                        {job.remote ? " · Remote" : ""}
+                        {job.type ? ` · ${job.type}` : ""}
                       </div>
                     </div>
                     <div className="latest-apply">Apply ↗</div>
@@ -340,6 +346,7 @@ export default function Goojob() {
           </div>
 
           <div className="filters">
+            <button className="home-btn" onClick={reset} title="Back to home">← Home</button>
             {[["all","All Jobs"],["remote","🌐 Remote"],["onsite","🏢 On-site"]].map(([key, label]) => (
               <button key={key} className={`filter-btn ${filter === key ? "active" : ""}`} onClick={() => handleFilter(key)}>{label}</button>
             ))}
