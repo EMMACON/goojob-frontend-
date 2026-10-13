@@ -26,6 +26,19 @@ function getViaLabel(source = "") {
   return "Via listing";
 }
 
+// Send an analytics event. The site loads GA through Google Tag Manager,
+// which never defines window.gtag — so events must go onto the dataLayer,
+// where a GTM trigger forwards them to GA4. gtag is still called if present.
+function track(event, params = {}) {
+  try {
+    window.dataLayer = window.dataLayer || [];
+    window.dataLayer.push({ event, ...params });
+    if (typeof window.gtag === "function") window.gtag("event", event, params);
+  } catch (e) {
+    // analytics must never break the site
+  }
+}
+
 function timeAgo(iso) {
   if (!iso) return "";
   const diff = Date.now() - new Date(iso);
@@ -39,6 +52,7 @@ function timeAgo(iso) {
 
 export default function Goojob() {
   const [query, setQuery] = useState("");
+  const [location, setLocation] = useState("");
   const [results, setResults] = useState([]);
   const [total, setTotal] = useState(0);
   const [searched, setSearched] = useState(false);
@@ -66,7 +80,7 @@ export default function Goojob() {
 
   const filteredSuggestions = SUGGESTIONS.filter(s => s.includes(query.toLowerCase()) && query.length > 0);
 
-  const handleSearch = async (q = query, activeFilter = filter) => {
+  const handleSearch = async (q = query, activeFilter = filter, loc = location) => {
     // If the ENTIRE typed query is a work-arrangement word (not a job
     // title), treat it as the Remote/On-site filter instead of a
     // doomed keyword search — same shortcut whether typed or tapped.
@@ -82,21 +96,24 @@ export default function Goojob() {
     // Empty query is fine IF a remote/on-site filter is active — that
     // means "browse all jobs of this type". Only block truly empty
     // searches with no filter at all.
-    if (!q.trim() && activeFilter === "all") return;
+    // A location on its own is also a valid search ("all jobs in Berlin").
+    if (!q.trim() && activeFilter === "all" && !loc.trim()) return;
     setLoading(true);
     setSearched(true);
     setShowSuggestions(false);
     setError("");
 
     // Track what people search for in Google Analytics
-    if (window.gtag) {
-      window.gtag("event", "search", { search_term: q.trim() || `[filter:${activeFilter}]`, filter: activeFilter });
-    }
+    track("search", {
+      search_term: q.trim() || `[filter:${activeFilter}]`,
+      filter: activeFilter,
+      search_location: loc.trim() || "(any)",
+    });
 
     const remote = activeFilter === "remote" ? true : activeFilter === "onsite" ? false : undefined;
 
     try {
-      const data = await searchJobs({ q, remote, page: 1 });
+      const data = await searchJobs({ q, remote, location: loc.trim(), page: 1 });
       setResults(data.jobs || []);
       setTotal(data.total || 0);
       setPage(1);
@@ -115,7 +132,7 @@ export default function Goojob() {
     const nextPage = page + 1;
     const remote = filter === "remote" ? true : filter === "onsite" ? false : undefined;
     try {
-      const data = await searchJobs({ q: query, remote, page: nextPage });
+      const data = await searchJobs({ q: query, remote, location: location.trim(), page: nextPage });
       setResults((prev) => [...prev, ...(data.jobs || [])]);
       setPage(nextPage);
       setHasMore(Boolean(data.hasMore));
@@ -140,7 +157,7 @@ export default function Goojob() {
   };
 
   const reset = () => {
-    setQuery(""); setResults([]); setSearched(false); setFilter("all"); setError("");
+    setQuery(""); setLocation(""); setResults([]); setSearched(false); setFilter("all"); setError("");
     setTotal(0); setPage(1); setHasMore(false); setShowSuggestions(false);
     window.scrollTo({ top: 0, behavior: "smooth" });
     setTimeout(() => inputRef.current?.focus(), 100);
@@ -148,12 +165,12 @@ export default function Goojob() {
 
   const handleApply = (job) => {
     // Track which jobs people apply to in Google Analytics
-    if (window.gtag) {
-      window.gtag("event", "apply_click", {
-        job_title: job.title || "",
-        company: job.company || "",
-      });
-    }
+    track("apply_click", {
+      job_title: job.title || "",
+      company: job.company || "",
+      job_location: job.location || "",
+      job_remote: job.remote ? "yes" : "no",
+    });
     if (job.id) logJobClick(job.id);
     window.open(job.apply_url, "_blank", "noopener,noreferrer");
   };
@@ -180,6 +197,12 @@ export default function Goojob() {
         .suggestions { position: absolute; top: calc(100% + 8px); left: 0; right: 0; background: #fff; border: 1.5px solid #E0E0DA; border-radius: 16px; overflow: hidden; box-shadow: 0 8px 28px rgba(0,0,0,0.08); z-index: 100; }
         .suggestion-item { padding: 11px 20px; font-size: 14px; color: #333; cursor: pointer; display: flex; align-items: center; gap: 10px; }
         .suggestion-item:hover { background: #F5F5F0; }
+        .loc-box { display: flex; align-items: center; gap: 8px; background: #fff; border: 1.5px solid #E0E0DA; border-radius: 40px; padding: 8px 16px; margin-top: 10px; transition: border-color 0.2s; }
+        .loc-box:focus-within { border-color: #111; }
+        .loc-box.compact { margin-top: 0; padding: 5px 12px; flex: 1 1 180px; max-width: 260px; }
+        .loc-input { flex: 1; border: none; outline: none; font-size: 16px; font-family: 'DM Sans', sans-serif; background: transparent; min-width: 0; }
+        .loc-input::placeholder { color: #C0C0BA; }
+        .loc-clear { border: none; background: none; color: #AAA; font-size: 16px; cursor: pointer; line-height: 1; }
         .hero-chips { display: flex; flex-wrap: wrap; justify-content: center; gap: 8px; margin-top: 28px; max-width: 540px; }
         .hero-chip { padding: 7px 16px; border: 1.5px solid #DDDDD8; border-radius: 20px; font-size: 13px; color: #555; cursor: pointer; transition: all 0.15s; background: #fff; font-family: 'DM Sans', sans-serif; }
         .hero-chip:hover { border-color: #111; color: #111; }
@@ -233,8 +256,10 @@ export default function Goojob() {
         .error-box { background: #FFF3F3; border: 1.5px solid #FFCECE; color: #C00; border-radius: 10px; padding: 14px 18px; margin-bottom: 16px; font-size: 14px; }
         .empty { text-align: center; padding: 60px 20px; color: #888; }
         .footer-note { margin-top: 48px; font-size: 12px; color: #CCC; text-align: center; line-height: 1.6; }
+        .top-bar .search-wrap { width: auto; min-width: 0; }
         @media (max-width: 600px) {
-          .top-bar { padding: 10px 14px; }
+          .top-bar { padding: 10px 14px; gap: 10px; }
+          .top-bar .search-btn { padding: 9px 14px; }
           .results-wrap, .filters { padding-left: 14px; padding-right: 14px; }
         }
       `}</style>
@@ -270,6 +295,16 @@ export default function Goojob() {
                 ))}
               </div>
             )}
+            <div className="loc-box">
+              <span style={{ fontSize: 14 }}>📍</span>
+              <input
+                className="loc-input"
+                placeholder="City or country (optional)"
+                value={location}
+                onChange={e => setLocation(e.target.value)}
+                onKeyDown={e => e.key === "Enter" && handleSearch()}
+              />
+            </div>
           </div>
 
           <div className="hero-chips">
@@ -285,7 +320,7 @@ export default function Goojob() {
                     setQuery("");
                     setFilter("remote");
                     setSearched(true);
-                    handleSearch("", "remote");
+                    handleSearch("", "remote", location);
                   } else {
                     setQuery(chip);
                     handleSearch(chip);
@@ -350,6 +385,20 @@ export default function Goojob() {
             {[["all","All Jobs"],["remote","🌐 Remote"],["onsite","🏢 On-site"]].map(([key, label]) => (
               <button key={key} className={`filter-btn ${filter === key ? "active" : ""}`} onClick={() => handleFilter(key)}>{label}</button>
             ))}
+            <div className="loc-box compact">
+              <span style={{ fontSize: 13 }}>📍</span>
+              <input
+                className="loc-input"
+                style={{ fontSize: 16 }}
+                placeholder="Any location"
+                value={location}
+                onChange={e => setLocation(e.target.value)}
+                onKeyDown={e => e.key === "Enter" && handleSearch()}
+              />
+              {location && (
+                <button className="loc-clear" title="Clear location" onClick={() => { setLocation(""); handleSearch(query, filter, ""); }}>×</button>
+              )}
+            </div>
           </div>
 
           <div className="results-wrap">
@@ -362,7 +411,7 @@ export default function Goojob() {
               <>
                 {error && <div className="error-box">{error}</div>}
                 {!error && results.length > 0 && (
-                  <p className="results-meta">{total} jobs for "<strong>{query}</strong>" — each Apply Now goes directly to that specific role</p>
+                  <p className="results-meta">{total} jobs{query.trim() ? <> for "<strong>{query}</strong>"</> : ""}{location.trim() ? <> in <strong>{location.trim()}</strong></> : ""} — each Apply Now goes directly to that specific role</p>
                 )}
                 {results.map((job, i) => (
                   <div key={job.id || i} className="job-card">
@@ -409,7 +458,7 @@ export default function Goojob() {
                 ))}
                 {!loading && !error && results.length === 0 && (
                   <div className="empty">
-                    <p>No jobs found for "<strong>{query}</strong>". Try another keyword.</p>
+                    <p>No jobs found{query.trim() ? <> for "<strong>{query}</strong>"</> : ""}{location.trim() ? <> in <strong>{location.trim()}</strong></> : ""}. {location.trim() ? "Try a nearby city, the country name, or clear the location." : "Try another keyword."}</p>
                   </div>
                 )}
                 {!loading && !error && results.length > 0 && hasMore && (
