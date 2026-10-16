@@ -233,6 +233,14 @@ export default function Goojob() {
         .error-box { background: #FFF3F3; border: 1.5px solid #FFCECE; color: #C00; border-radius: 10px; padding: 14px 18px; margin-bottom: 16px; font-size: 14px; }
         .empty { text-align: center; padding: 60px 20px; color: #888; }
         .footer-note { margin-top: 48px; font-size: 12px; color: #CCC; text-align: center; line-height: 1.6; }
+        .site-footer { display: flex; flex-direction: column; align-items: center; gap: 14px; padding: 36px 20px 44px; border-top: 1.5px solid #EBEBEB; }
+        .site-footer-row { display: flex; align-items: center; gap: 12px; }
+        .footer-email { font-size: 14px; font-weight: 500; color: #111; text-decoration: none; padding: 9px 18px; border: 1.5px solid #DDDDD8; border-radius: 24px; background: #fff; transition: all 0.15s; }
+        .footer-email:hover { border-color: #111; }
+        .footer-x { width: 40px; height: 40px; border-radius: 50%; background: #111; display: inline-flex; align-items: center; justify-content: center; transition: transform 0.15s, background 0.15s; }
+        .footer-x:hover { background: #333; transform: translateY(-1px); }
+        .footer-x svg { width: 16px; height: 16px; fill: #fff; }
+        .footer-copy { font-size: 12px; color: #AAA; }
         @media (max-width: 600px) {
           .top-bar { padding: 10px 14px; }
           .results-wrap, .filters { padding-left: 14px; padding-right: 14px; }
@@ -422,6 +430,26 @@ export default function Goojob() {
           </div>
         </>
       )}
+
+      <footer className="site-footer">
+        <div className="site-footer-row">
+          <a className="footer-email" href="mailto:contact@goojob.io">contact@goojob.io</a>
+          <a
+            className="footer-x"
+            href="https://x.com/contactgoojob"
+            target="_blank"
+            rel="noopener noreferrer"
+            aria-label="Goojob on X"
+            title="Follow Goojob on X"
+            onClick={() => window.gtag && window.gtag("event", "x_profile_click")}
+          >
+            <svg viewBox="0 0 24 24" aria-hidden="true">
+              <path d="M18.244 2.25h3.308l-7.227 8.26 8.502 11.24H16.17l-5.214-6.817L4.99 21.75H1.68l7.73-8.835L1.254 2.25H8.08l4.713 6.231zm-1.161 17.52h1.833L7.084 4.126H5.117z" />
+            </svg>
+          </a>
+        </div>
+        <p className="footer-copy">© {new Date().getFullYear()} Goojob</p>
+      </footer>
     </div>
   );
 }
