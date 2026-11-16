@@ -1,0 +1,115 @@
+import assert from "node:assert/strict";
+import fs from "node:fs";
+import test from "node:test";
+import { DESCRIPTION, GA_ID, GTM_ID, TAGLINE } from "../src/content.js";
+import { renderHome, renderPage, renderSearch } from "../scripts/markup.mjs";
+
+const home = renderHome({
+  jobs: [
+    {
+      title: "Editor",
+      company: "Acme",
+      location: "Paris, fr",
+      remote: false,
+      type: "fulltime_permanent",
+      apply_url: "https://jobs.example.com/editor",
+    },
+    {
+      title: "Bad",
+      company: "Nope",
+      apply_url: "javascript:alert(1)",
+    },
+  ],
+});
+
+test("homepage shell is one h1 with the tagline, a real search form, and apply links", () => {
+  assert.equal(home.match(/<h1\b/g).length, 1);
+  assert.match(home, /<h1 class="wordmark">/);
+  assert.match(home, />Goo<\/span><span class="g2">job</);
+  assert.ok(home.includes("The search engine for jobs"));
+  assert.ok(home.includes(TAGLINE));
+  assert.ok(home.includes("Apply opens the official posting for that role"));
+  assert.match(home, /<form class="search-form" role="search" action="\/search" method="get">/);
+  assert.match(home, /<label class="sr-only" for="q">Search jobs<\/label>/);
+  assert.match(home, /name="q"/);
+  assert.match(home, /aria-label="Search jobs"/);
+  assert.match(home, /name="location"/);
+  assert.match(home, /aria-label="Location"/);
+  assert.ok(home.includes("https://jobs.example.com/editor"));
+  assert.ok(home.includes(">Apply<"));
+  assert.ok(home.includes("Paris, FR"));
+  assert.ok(home.includes("Full-time"));
+  assert.equal(home.includes("javascript:"), false);
+  assert.ok(home.includes('href="/privacy"'));
+  assert.equal(home.includes("millions"), false);
+  assert.equal(home.includes("thousands"), false);
+});
+
+test("search and legal pages are linkable documents", () => {
+  const search = renderSearch();
+  assert.equal(search.match(/<h1\b/g).length, 1);
+  assert.match(search, /<h2 class="results-heading">/);
+  assert.match(search, /role="search"/);
+
+  const privacy = renderPage("/privacy");
+  assert.match(privacy, /<h1>Privacy<\/h1>/);
+  assert.ok(privacy.includes("Draft for the site owner to review"));
+  assert.ok(privacy.includes("Google Analytics 4"));
+  assert.ok(privacy.includes(GA_ID));
+  assert.ok(privacy.includes(GTM_ID));
+  assert.ok(privacy.includes("contact@goojob.io"));
+  assert.equal(privacy.match(/<h1\b/g).length, 1);
+
+  for (const path of ["/about", "/terms", "/contact"]) {
+    const html = renderPage(path);
+    assert.equal(html.match(/<h1\b/g).length, 1);
+    assert.ok(html.includes("contact@goojob.io"));
+  }
+});
+
+test("source head uses the canonical www origin and one description", () => {
+  const html = fs.readFileSync(new URL("../index.html", import.meta.url), "utf8");
+  const vercel = JSON.parse(fs.readFileSync(new URL("../vercel.json", import.meta.url), "utf8"));
+  const robots = fs.readFileSync(new URL("../public/robots.txt", import.meta.url), "utf8");
+  const sitemap = fs.readFileSync(new URL("../public/sitemap.xml", import.meta.url), "utf8");
+
+  assert.ok(html.includes("<title>Goojob — The Search Engine for Jobs</title>"));
+  assert.equal(html.split(DESCRIPTION).length - 1 >= 3, true);
+  assert.ok(html.includes('rel="canonical" href="https://www.goojob.io/"'));
+  assert.ok(html.includes('property="og:url" content="https://www.goojob.io/"'));
+  assert.ok(html.includes('property="og:image" content="https://www.goojob.io/og.png"'));
+  assert.ok(html.includes('name="twitter:image" content="https://www.goojob.io/og.png"'));
+  assert.ok(html.includes('property="og:site_name" content="Goojob"'));
+  assert.ok(html.includes('property="og:locale" content="en_US"'));
+  assert.ok(html.includes("https://www.goojob.io/search?q={search_term_string}"));
+  assert.ok(html.includes("GTM-TJZLWC74"));
+  assert.ok(html.includes("fonts.googleapis.com"));
+  assert.ok(html.includes('rel="preconnect" href="https://fonts.gstatic.com"'));
+  assert.ok(html.includes('href="/favicon.ico"'));
+  assert.ok(html.includes('href="/apple-touch-icon.png"'));
+  assert.equal(html.includes("millions"), false);
+  assert.equal(html.includes("thousands"), false);
+  assert.equal(html.includes("https://goojob.io/"), false);
+  assert.equal(html.includes('content="https://goojob.io"'), false);
+
+  assert.equal(robots.includes("Allow: /"), true);
+  assert.equal(robots.includes("Sitemap: https://www.goojob.io/sitemap.xml"), true);
+  for (const url of [
+    "https://www.goojob.io/",
+    "https://www.goojob.io/search",
+    "https://www.goojob.io/about",
+    "https://www.goojob.io/privacy",
+    "https://www.goojob.io/terms",
+    "https://www.goojob.io/contact",
+  ]) {
+    assert.ok(sitemap.includes(url), url);
+  }
+
+  const headerBlob = JSON.stringify(vercel.headers);
+  assert.match(headerBlob, /X-Content-Type-Options/);
+  assert.match(headerBlob, /Referrer-Policy/);
+  assert.match(headerBlob, /X-Frame-Options/);
+  assert.match(headerBlob, /frame-ancestors/);
+  assert.match(headerBlob, /immutable/);
+  assert.equal(vercel.rewrites[0].destination, "/index.html");
+});
