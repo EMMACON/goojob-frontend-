@@ -1,0 +1,5 @@
+User-agent: *
+Allow: /
+Disallow: /manage-x7k2.html
+
+Sitemap: https://www.goojob.io/sitemap.xml
