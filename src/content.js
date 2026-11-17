@@ -10,8 +10,6 @@ export const HOME_NOTE =
 export const GTM_ID = "GTM-TJZLWC74";
 export const GA_ID = "G-H5X43NYENX";
 export const CONTACT_EMAIL = "contact@goojob.io";
-export const DRAFT_NOTE =
-  "Draft for the site owner to review. This is generic placeholder legal text, not a final policy. It is not legal advice.";
 
 export const SUGGESTIONS = [
   "engineer",
@@ -82,7 +80,6 @@ export function splitLinks(text) {
 export const PAGES = {
   "/about": {
     h1: "About",
-    draft: false,
     blocks: [
       {
         type: "p",
@@ -98,7 +95,6 @@ export const PAGES = {
   },
   "/privacy": {
     h1: "Privacy",
-    draft: true,
     blocks: [
       {
         type: "p",
@@ -133,7 +129,6 @@ export const PAGES = {
   },
   "/terms": {
     h1: "Terms",
-    draft: true,
     blocks: [
       {
         type: "p",
@@ -160,7 +155,6 @@ export const PAGES = {
   },
   "/contact": {
     h1: "Contact",
-    draft: false,
     blocks: [
       {
         type: "p",

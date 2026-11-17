@@ -4,7 +4,6 @@ import {
   BRAND_TITLE,
   CHIPS,
   CONTACT_EMAIL,
-  DRAFT_NOTE,
   FILTERS,
   FOOTER_LINKS,
   HOME_NOTE,
@@ -671,11 +670,6 @@ function InfoPage({ page }) {
         <Wordmark />
       </header>
       <main className="prose">
-        {page.draft && (
-          <p className="draft-banner">
-            <strong>Draft for the site owner to review.</strong> {DRAFT_NOTE.replace(/^Draft for the site owner to review\.\s*/, "")}
-          </p>
-        )}
         <h1>{page.h1}</h1>
         {page.blocks.map((block, index) => {
           if (block.type === "h2") return <h2 key={index}>{block.text}</h2>;
