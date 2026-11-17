@@ -53,7 +53,10 @@ test("search and legal pages are linkable documents", () => {
 
   const privacy = renderPage("/privacy");
   assert.match(privacy, /<h1>Privacy<\/h1>/);
-  assert.ok(privacy.includes("Draft for the site owner to review"));
+  assert.equal(privacy.includes("draft-banner"), false);
+  assert.equal(privacy.includes("Draft for the site owner"), false);
+  assert.equal(privacy.includes("placeholder legal"), false);
+  assert.equal(privacy.includes("not legal advice"), false);
   assert.ok(privacy.includes("Google Analytics 4"));
   assert.ok(privacy.includes(GA_ID));
   assert.ok(privacy.includes(GTM_ID));
@@ -64,6 +67,10 @@ test("search and legal pages are linkable documents", () => {
     const html = renderPage(path);
     assert.equal(html.match(/<h1\b/g).length, 1);
     assert.ok(html.includes("contact@goojob.io"));
+    assert.equal(html.includes("draft-banner"), false);
+    assert.equal(html.includes("Draft for the site owner"), false);
+    assert.equal(html.includes("placeholder legal"), false);
+    assert.equal(html.includes("not legal advice"), false);
   }
 });
 

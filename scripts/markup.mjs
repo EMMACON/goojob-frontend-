@@ -157,13 +157,9 @@ function blocksHtml(blocks) {
 export function renderPage(path) {
   const page = PAGES[path];
   if (!page) throw new Error(`Unknown page ${path}`);
-  const banner = page.draft
-    ? `<p class="draft-banner"><strong>Draft for the site owner to review.</strong> This is generic placeholder legal text, not a final policy. It is not legal advice.</p>`
-    : "";
   return `<div class="page-wrap">
     <header class="sub-header">${wordmark({ heading: false })}</header>
     <main class="prose">
-      ${banner}
       <h1>${esc(page.h1)}</h1>
       ${blocksHtml(page.blocks)}
     </main>
