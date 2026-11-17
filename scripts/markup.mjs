@@ -1,9 +1,11 @@
 import {
+  BACK_TO_SEARCH_LABEL,
   CHIPS,
   CONTACT_EMAIL,
   FILTERS,
   FOOTER_LINKS,
   HOME_NOTE,
+  LOGO_HOME_LABEL,
   PAGES,
   SUPPORTING,
   TAGLINE,
@@ -36,8 +38,9 @@ function richText(text) {
 
 function wordmark({ large = false, heading = false }) {
   const cls = large ? "wordmark" : "wordmark-sm";
-  if (heading) return `<h1 class="${cls}"><a href="/">${WORDMARK}</a></h1>`;
-  return `<a class="${cls}" href="/">${WORDMARK}</a>`;
+  const label = esc(LOGO_HOME_LABEL);
+  if (heading) return `<h1 class="${cls}"><a href="/" aria-label="${label}">${WORDMARK}</a></h1>`;
+  return `<a class="${cls}" href="/" aria-label="${label}">${WORDMARK}</a>`;
 }
 
 export function searchFormHtml() {
@@ -158,7 +161,7 @@ export function renderPage(path) {
   const page = PAGES[path];
   if (!page) throw new Error(`Unknown page ${path}`);
   return `<div class="page-wrap">
-    <header class="sub-header">${wordmark({ heading: false })}</header>
+    <header class="sub-header">${wordmark({ heading: false })}<a class="back-home" href="/">${esc(BACK_TO_SEARCH_LABEL)}</a></header>
     <main class="prose">
       <h1>${esc(page.h1)}</h1>
       ${blocksHtml(page.blocks)}

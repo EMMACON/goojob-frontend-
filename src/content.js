@@ -38,7 +38,11 @@ export const FILTERS = [
   { key: "onsite", label: "On-site" },
 ];
 
+export const LOGO_HOME_LABEL = "Goojob home";
+export const BACK_TO_SEARCH_LABEL = "← Back to search";
+
 export const FOOTER_LINKS = [
+  { href: "/", label: "Home" },
   { href: "/about", label: "About" },
   { href: "/privacy", label: "Privacy" },
   { href: "/terms", label: "Terms" },

@@ -1,12 +1,14 @@
 import { useEffect, useRef, useState } from "react";
 import { getRecentJobs, logJobClick, searchJobs } from "./api";
 import {
+  BACK_TO_SEARCH_LABEL,
   BRAND_TITLE,
   CHIPS,
   CONTACT_EMAIL,
   FILTERS,
   FOOTER_LINKS,
   HOME_NOTE,
+  LOGO_HOME_LABEL,
   PAGES,
   SITE_ORIGIN,
   SUGGESTIONS,
@@ -127,12 +129,14 @@ function Wordmark({ large = false, heading = false }) {
   if (heading) {
     return (
       <h1 className={className}>
-        <a href="/">{mark}</a>
+        <a href="/" aria-label={LOGO_HOME_LABEL}>
+          {mark}
+        </a>
       </h1>
     );
   }
   return (
-    <a className={className} href="/">
+    <a className={className} href="/" aria-label={LOGO_HOME_LABEL}>
       {mark}
     </a>
   );
@@ -668,6 +672,9 @@ function InfoPage({ page }) {
     <div className="page-wrap">
       <header className="sub-header">
         <Wordmark />
+        <a className="back-home" href="/">
+          {BACK_TO_SEARCH_LABEL}
+        </a>
       </header>
       <main className="prose">
         <h1>{page.h1}</h1>

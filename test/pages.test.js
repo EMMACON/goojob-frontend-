@@ -1,7 +1,15 @@
 import assert from "node:assert/strict";
 import fs from "node:fs";
 import test from "node:test";
-import { DESCRIPTION, GA_ID, GTM_ID, TAGLINE } from "../src/content.js";
+import {
+  BACK_TO_SEARCH_LABEL,
+  DESCRIPTION,
+  FOOTER_LINKS,
+  GA_ID,
+  GTM_ID,
+  LOGO_HOME_LABEL,
+  TAGLINE,
+} from "../src/content.js";
 import { renderHome, renderPage, renderSearch } from "../scripts/markup.mjs";
 
 const home = renderHome({
@@ -41,8 +49,29 @@ test("homepage shell is one h1 with the tagline, a real search form, and apply l
   assert.ok(home.includes("Full-time"));
   assert.equal(home.includes("javascript:"), false);
   assert.ok(home.includes('href="/privacy"'));
+  assert.match(home, new RegExp(`aria-label="${LOGO_HOME_LABEL}"`));
+  assert.match(footerNav(home), /^<nav class="footer-nav" aria-label="Footer"><a href="\/">Home<\/a>/);
   assert.equal(home.includes("millions"), false);
   assert.equal(home.includes("thousands"), false);
+});
+
+function footerNav(html) {
+  const match = html.match(/<nav class="footer-nav" aria-label="Footer">[\s\S]*?<\/nav>/);
+  assert.ok(match, "footer nav");
+  return match[0];
+}
+
+test("footer leads with Home, then About, Privacy, Terms, and Contact", () => {
+  assert.deepEqual(
+    FOOTER_LINKS.map((link) => [link.label, link.href]),
+    [
+      ["Home", "/"],
+      ["About", "/about"],
+      ["Privacy", "/privacy"],
+      ["Terms", "/terms"],
+      ["Contact", "/contact"],
+    ]
+  );
 });
 
 test("search and legal pages are linkable documents", () => {
@@ -50,6 +79,8 @@ test("search and legal pages are linkable documents", () => {
   assert.equal(search.match(/<h1\b/g).length, 1);
   assert.match(search, /<h2 class="results-heading">/);
   assert.match(search, /role="search"/);
+  assert.match(search, new RegExp(`<a href="/" aria-label="${LOGO_HOME_LABEL}">`));
+  assert.match(footerNav(search), /<a href="\/">Home<\/a><a href="\/about">About<\/a>/);
 
   const privacy = renderPage("/privacy");
   assert.match(privacy, /<h1>Privacy<\/h1>/);
@@ -63,10 +94,19 @@ test("search and legal pages are linkable documents", () => {
   assert.ok(privacy.includes("contact@goojob.io"));
   assert.equal(privacy.match(/<h1\b/g).length, 1);
 
-  for (const path of ["/about", "/terms", "/contact"]) {
+  for (const path of ["/about", "/privacy", "/terms", "/contact"]) {
     const html = renderPage(path);
     assert.equal(html.match(/<h1\b/g).length, 1);
     assert.ok(html.includes("contact@goojob.io"));
+    assert.match(
+      html,
+      new RegExp(`<a class="wordmark-sm" href="/" aria-label="${LOGO_HOME_LABEL}">`)
+    );
+    assert.match(html, new RegExp(`<a class="back-home" href="/">${BACK_TO_SEARCH_LABEL}</a>`));
+    assert.match(
+      footerNav(html),
+      /<a href="\/">Home<\/a><a href="\/about">About<\/a><a href="\/privacy">Privacy<\/a><a href="\/terms">Terms<\/a><a href="\/contact">Contact<\/a>/
+    );
     assert.equal(html.includes("draft-banner"), false);
     assert.equal(html.includes("Draft for the site owner"), false);
     assert.equal(html.includes("placeholder legal"), false);
