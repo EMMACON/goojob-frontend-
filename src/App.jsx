@@ -1,14 +1,32 @@
 import { useEffect, useRef, useState } from "react";
 import { getRecentJobs, logJobClick, searchJobs } from "./api";
 import {
+  ANOTHER_DIRECTORY_BADGE_ALT,
+  ANOTHER_DIRECTORY_BADGE_HEIGHT,
+  ANOTHER_DIRECTORY_BADGE_SRC,
+  ANOTHER_DIRECTORY_BADGE_WIDTH,
+  ANOTHER_DIRECTORY_HREF,
+  ANOTHER_DIRECTORY_TITLE,
+  BACK_TO_SEARCH_LABEL,
   BRAND_TITLE,
   CHIPS,
   CONTACT_EMAIL,
+  FAZIER_BADGE_ALT,
+  FAZIER_BADGE_HEIGHT,
+  FAZIER_BADGE_SRC,
+  FAZIER_BADGE_WIDTH,
+  FAZIER_HREF,
   FILTERS,
   FOOTER_LINKS,
   HOME_NOTE,
+  LOGO_HOME_LABEL,
   PAGES,
   SITE_ORIGIN,
+  STARTUP_FAME_BADGE_ALT,
+  STARTUP_FAME_BADGE_HEIGHT,
+  STARTUP_FAME_BADGE_SRC,
+  STARTUP_FAME_BADGE_WIDTH,
+  STARTUP_FAME_HREF,
   SUGGESTIONS,
   SUPPORTING,
   TAGLINE,
@@ -127,12 +145,14 @@ function Wordmark({ large = false, heading = false }) {
   if (heading) {
     return (
       <h1 className={className}>
-        <a href="/">{mark}</a>
+        <a href="/" aria-label={LOGO_HOME_LABEL}>
+          {mark}
+        </a>
       </h1>
     );
   }
   return (
-    <a className={className} href="/">
+    <a className={className} href="/" aria-label={LOGO_HOME_LABEL}>
       {mark}
     </a>
   );
@@ -181,6 +201,34 @@ function Footer() {
         </a>
       </div>
       <p className="footer-copy">© {new Date().getFullYear()} Goojob</p>
+      <div className="footer-featured">
+        <p className="footer-featured-label">Featured on</p>
+        <a href={FAZIER_HREF} target="_blank" rel="noopener">
+          <img
+            src={FAZIER_BADGE_SRC}
+            width={FAZIER_BADGE_WIDTH}
+            height={FAZIER_BADGE_HEIGHT}
+            alt={FAZIER_BADGE_ALT}
+            loading="lazy"
+          />
+        </a>
+        <a href={STARTUP_FAME_HREF} target="_blank">
+          <img
+            src={STARTUP_FAME_BADGE_SRC}
+            alt={STARTUP_FAME_BADGE_ALT}
+            width={STARTUP_FAME_BADGE_WIDTH}
+            height={STARTUP_FAME_BADGE_HEIGHT}
+          />
+        </a>
+        <a href={ANOTHER_DIRECTORY_HREF} title={ANOTHER_DIRECTORY_TITLE}>
+          <img
+            src={ANOTHER_DIRECTORY_BADGE_SRC}
+            alt={ANOTHER_DIRECTORY_BADGE_ALT}
+            width={ANOTHER_DIRECTORY_BADGE_WIDTH}
+            height={ANOTHER_DIRECTORY_BADGE_HEIGHT}
+          />
+        </a>
+      </div>
     </footer>
   );
 }
@@ -668,6 +716,9 @@ function InfoPage({ page }) {
     <div className="page-wrap">
       <header className="sub-header">
         <Wordmark />
+        <a className="back-home" href="/">
+          {BACK_TO_SEARCH_LABEL}
+        </a>
       </header>
       <main className="prose">
         <h1>{page.h1}</h1>

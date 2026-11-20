@@ -1,10 +1,28 @@
 import {
+  ANOTHER_DIRECTORY_BADGE_ALT,
+  ANOTHER_DIRECTORY_BADGE_HEIGHT,
+  ANOTHER_DIRECTORY_BADGE_SRC,
+  ANOTHER_DIRECTORY_BADGE_WIDTH,
+  ANOTHER_DIRECTORY_HREF,
+  ANOTHER_DIRECTORY_TITLE,
+  BACK_TO_SEARCH_LABEL,
   CHIPS,
   CONTACT_EMAIL,
+  FAZIER_BADGE_ALT,
+  FAZIER_BADGE_HEIGHT,
+  FAZIER_BADGE_SRC,
+  FAZIER_BADGE_WIDTH,
+  FAZIER_HREF,
   FILTERS,
   FOOTER_LINKS,
   HOME_NOTE,
+  LOGO_HOME_LABEL,
   PAGES,
+  STARTUP_FAME_BADGE_ALT,
+  STARTUP_FAME_BADGE_HEIGHT,
+  STARTUP_FAME_BADGE_SRC,
+  STARTUP_FAME_BADGE_WIDTH,
+  STARTUP_FAME_HREF,
   SUPPORTING,
   TAGLINE,
   splitLinks,
@@ -36,8 +54,9 @@ function richText(text) {
 
 function wordmark({ large = false, heading = false }) {
   const cls = large ? "wordmark" : "wordmark-sm";
-  if (heading) return `<h1 class="${cls}"><a href="/">${WORDMARK}</a></h1>`;
-  return `<a class="${cls}" href="/">${WORDMARK}</a>`;
+  const label = esc(LOGO_HOME_LABEL);
+  if (heading) return `<h1 class="${cls}"><a href="/" aria-label="${label}">${WORDMARK}</a></h1>`;
+  return `<a class="${cls}" href="/" aria-label="${label}">${WORDMARK}</a>`;
 }
 
 export function searchFormHtml() {
@@ -74,6 +93,12 @@ export function footerHtml() {
       <a class="footer-x" href="https://x.com/contactgoojob" target="_blank" rel="noopener noreferrer" aria-label="Goojob on X" title="Follow Goojob on X">${xIcon()}</a>
     </div>
     <p class="footer-copy">© ${year} Goojob</p>
+    <div class="footer-featured">
+      <p class="footer-featured-label">Featured on</p>
+      <a href="${FAZIER_HREF}" target="_blank" rel="noopener"><img src="${FAZIER_BADGE_SRC}" width="${FAZIER_BADGE_WIDTH}" height="${FAZIER_BADGE_HEIGHT}" alt="${esc(FAZIER_BADGE_ALT)}" loading="lazy" /></a>
+      <a href="${STARTUP_FAME_HREF}" target="_blank"><img src="${STARTUP_FAME_BADGE_SRC}" alt="${esc(STARTUP_FAME_BADGE_ALT)}" width="${STARTUP_FAME_BADGE_WIDTH}" height="${STARTUP_FAME_BADGE_HEIGHT}" /></a>
+      <a href="${ANOTHER_DIRECTORY_HREF}" title="${esc(ANOTHER_DIRECTORY_TITLE)}"><img src="${ANOTHER_DIRECTORY_BADGE_SRC}" alt="${esc(ANOTHER_DIRECTORY_BADGE_ALT)}" width="${ANOTHER_DIRECTORY_BADGE_WIDTH}" height="${ANOTHER_DIRECTORY_BADGE_HEIGHT}"></a>
+    </div>
   </footer>`;
 }
 
@@ -158,7 +183,7 @@ export function renderPage(path) {
   const page = PAGES[path];
   if (!page) throw new Error(`Unknown page ${path}`);
   return `<div class="page-wrap">
-    <header class="sub-header">${wordmark({ heading: false })}</header>
+    <header class="sub-header">${wordmark({ heading: false })}<a class="back-home" href="/">${esc(BACK_TO_SEARCH_LABEL)}</a></header>
     <main class="prose">
       <h1>${esc(page.h1)}</h1>
       ${blocksHtml(page.blocks)}

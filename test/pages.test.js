@@ -1,7 +1,21 @@
 import assert from "node:assert/strict";
 import fs from "node:fs";
 import test from "node:test";
-import { DESCRIPTION, GA_ID, GTM_ID, TAGLINE } from "../src/content.js";
+import {
+  BACK_TO_SEARCH_LABEL,
+  DESCRIPTION,
+  ANOTHER_DIRECTORY_BADGE_SRC,
+  ANOTHER_DIRECTORY_HREF,
+  FAZIER_BADGE_SRC,
+  FAZIER_HREF,
+  STARTUP_FAME_BADGE_SRC,
+  STARTUP_FAME_HREF,
+  FOOTER_LINKS,
+  GA_ID,
+  GTM_ID,
+  LOGO_HOME_LABEL,
+  TAGLINE,
+} from "../src/content.js";
 import { renderHome, renderPage, renderSearch } from "../scripts/markup.mjs";
 
 const home = renderHome({
@@ -41,8 +55,83 @@ test("homepage shell is one h1 with the tagline, a real search form, and apply l
   assert.ok(home.includes("Full-time"));
   assert.equal(home.includes("javascript:"), false);
   assert.ok(home.includes('href="/privacy"'));
+  assert.match(home, new RegExp(`aria-label="${LOGO_HOME_LABEL}"`));
+  assert.match(footerNav(home), /^<nav class="footer-nav" aria-label="Footer"><a href="\/">Home<\/a>/);
   assert.equal(home.includes("millions"), false);
   assert.equal(home.includes("thousands"), false);
+});
+
+function footerNav(html) {
+  const match = html.match(/<nav class="footer-nav" aria-label="Footer">[\s\S]*?<\/nav>/);
+  assert.ok(match, "footer nav");
+  return match[0];
+}
+
+function footerBlock(html) {
+  const start = html.indexOf('<footer class="site-footer">');
+  const end = html.indexOf("</footer>", start);
+  assert.ok(start >= 0 && end > start, "site footer");
+  return html.slice(start, end);
+}
+
+test("footer leads with Home, then About, Privacy, Terms, and Contact", () => {
+  assert.deepEqual(
+    FOOTER_LINKS.map((link) => [link.label, link.href]),
+    [
+      ["Home", "/"],
+      ["About", "/about"],
+      ["Privacy", "/privacy"],
+      ["Terms", "/terms"],
+      ["Contact", "/contact"],
+    ]
+  );
+});
+
+test("every page footer links to the featured badges", () => {
+  const pages = [
+    home,
+    renderSearch(),
+    renderPage("/about"),
+    renderPage("/privacy"),
+    renderPage("/terms"),
+    renderPage("/contact"),
+  ];
+  for (const html of pages) {
+    const footer = footerBlock(html);
+    assert.ok(footer.includes(`href="${FAZIER_HREF}"`));
+    assert.ok(footer.includes(FAZIER_BADGE_SRC));
+    assert.ok(footer.includes('alt="Fazier badge"'));
+    assert.ok(footer.includes('width="120"'));
+    assert.ok(footer.includes('height="51"'));
+    assert.ok(footer.includes('loading="lazy"'));
+    assert.ok(footer.includes(`href="${STARTUP_FAME_HREF}"`));
+    assert.ok(footer.includes(STARTUP_FAME_BADGE_SRC));
+    assert.ok(footer.includes('alt="Goojob - Featured on Startup Fame"'));
+    assert.ok(footer.includes('width="224"'));
+    assert.ok(footer.includes('height="36"'));
+    const startup = footer.match(/<a href="https:\/\/startupfa\.me\/s\/goojob\?utm_source=www\.goojob\.io"[^>]*>/);
+    assert.ok(startup, "startup fame anchor");
+    assert.equal(startup[0].includes("nofollow"), false);
+    assert.equal(startup[0].includes("rel="), false);
+    assert.ok(footer.includes(`href="${ANOTHER_DIRECTORY_HREF}"`));
+    assert.ok(footer.includes(ANOTHER_DIRECTORY_BADGE_SRC));
+    assert.ok(footer.includes('title="Listed on Another Directory"'));
+    assert.ok(footer.includes('alt="Listed on Another Directory"'));
+    assert.ok(footer.includes('width="214"'));
+    assert.ok(footer.includes('height="48"'));
+    const directory = footer.match(/<a href="https:\/\/another\.directory\/tools\/goojob"[^>]*>/);
+    assert.ok(directory, "another directory anchor");
+    assert.equal(directory[0].includes("nofollow"), false);
+    assert.equal(directory[0].includes("rel="), false);
+    assert.equal(directory[0].includes("target="), false);
+    assert.ok(footer.indexOf(`href="${FAZIER_HREF}"`) < footer.indexOf(`href="${STARTUP_FAME_HREF}"`));
+    assert.ok(footer.indexOf(`href="${STARTUP_FAME_HREF}"`) < footer.indexOf(`href="${ANOTHER_DIRECTORY_HREF}"`));
+    assert.equal(footerNav(html).includes("fazier.com"), false);
+    assert.equal(footerNav(html).includes("startupfa.me"), false);
+    assert.equal(footerNav(html).includes("another.directory"), false);
+    assert.ok(footer.indexOf("footer-nav") < footer.indexOf("footer-featured"));
+    assert.ok(footer.includes("Featured on"));
+  }
 });
 
 test("search and legal pages are linkable documents", () => {
@@ -50,6 +139,8 @@ test("search and legal pages are linkable documents", () => {
   assert.equal(search.match(/<h1\b/g).length, 1);
   assert.match(search, /<h2 class="results-heading">/);
   assert.match(search, /role="search"/);
+  assert.match(search, new RegExp(`<a href="/" aria-label="${LOGO_HOME_LABEL}">`));
+  assert.match(footerNav(search), /<a href="\/">Home<\/a><a href="\/about">About<\/a>/);
 
   const privacy = renderPage("/privacy");
   assert.match(privacy, /<h1>Privacy<\/h1>/);
@@ -63,10 +154,19 @@ test("search and legal pages are linkable documents", () => {
   assert.ok(privacy.includes("contact@goojob.io"));
   assert.equal(privacy.match(/<h1\b/g).length, 1);
 
-  for (const path of ["/about", "/terms", "/contact"]) {
+  for (const path of ["/about", "/privacy", "/terms", "/contact"]) {
     const html = renderPage(path);
     assert.equal(html.match(/<h1\b/g).length, 1);
     assert.ok(html.includes("contact@goojob.io"));
+    assert.match(
+      html,
+      new RegExp(`<a class="wordmark-sm" href="/" aria-label="${LOGO_HOME_LABEL}">`)
+    );
+    assert.match(html, new RegExp(`<a class="back-home" href="/">${BACK_TO_SEARCH_LABEL}</a>`));
+    assert.match(
+      footerNav(html),
+      /<a href="\/">Home<\/a><a href="\/about">About<\/a><a href="\/privacy">Privacy<\/a><a href="\/terms">Terms<\/a><a href="\/contact">Contact<\/a>/
+    );
     assert.equal(html.includes("draft-banner"), false);
     assert.equal(html.includes("Draft for the site owner"), false);
     assert.equal(html.includes("placeholder legal"), false);

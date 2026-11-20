@@ -38,7 +38,32 @@ export const FILTERS = [
   { key: "onsite", label: "On-site" },
 ];
 
+export const LOGO_HOME_LABEL = "Goojob home";
+export const BACK_TO_SEARCH_LABEL = "← Back to search";
+
+export const FAZIER_HREF = "https://fazier.com";
+export const FAZIER_BADGE_SRC =
+  "https://fazier.com/api/v1//public/badges/launch_badges.svg?badge_type=launched&theme=light";
+export const FAZIER_BADGE_ALT = "Fazier badge";
+// The SVG is 103×44. At the required 120px width the reserved height is 51px.
+export const FAZIER_BADGE_WIDTH = 120;
+export const FAZIER_BADGE_HEIGHT = 51;
+
+export const STARTUP_FAME_HREF = "https://startupfa.me/s/goojob?utm_source=www.goojob.io";
+export const STARTUP_FAME_BADGE_SRC = "https://startupfa.me/badges/featured-badge-small.webp";
+export const STARTUP_FAME_BADGE_ALT = "Goojob - Featured on Startup Fame";
+export const STARTUP_FAME_BADGE_WIDTH = 224;
+export const STARTUP_FAME_BADGE_HEIGHT = 36;
+
+export const ANOTHER_DIRECTORY_HREF = "https://another.directory/tools/goojob";
+export const ANOTHER_DIRECTORY_TITLE = "Listed on Another Directory";
+export const ANOTHER_DIRECTORY_BADGE_SRC = "https://another.directory/badges/listed-light.svg";
+export const ANOTHER_DIRECTORY_BADGE_ALT = "Listed on Another Directory";
+export const ANOTHER_DIRECTORY_BADGE_WIDTH = 214;
+export const ANOTHER_DIRECTORY_BADGE_HEIGHT = 48;
+
 export const FOOTER_LINKS = [
+  { href: "/", label: "Home" },
   { href: "/about", label: "About" },
   { href: "/privacy", label: "Privacy" },
   { href: "/terms", label: "Terms" },
