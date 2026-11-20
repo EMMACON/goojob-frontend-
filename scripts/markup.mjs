@@ -12,6 +12,11 @@ import {
   HOME_NOTE,
   LOGO_HOME_LABEL,
   PAGES,
+  STARTUP_FAME_BADGE_ALT,
+  STARTUP_FAME_BADGE_HEIGHT,
+  STARTUP_FAME_BADGE_SRC,
+  STARTUP_FAME_BADGE_WIDTH,
+  STARTUP_FAME_HREF,
   SUPPORTING,
   TAGLINE,
   splitLinks,
@@ -85,6 +90,7 @@ export function footerHtml() {
     <div class="footer-featured">
       <p class="footer-featured-label">Featured on</p>
       <a href="${FAZIER_HREF}" target="_blank" rel="noopener"><img src="${FAZIER_BADGE_SRC}" width="${FAZIER_BADGE_WIDTH}" height="${FAZIER_BADGE_HEIGHT}" alt="${esc(FAZIER_BADGE_ALT)}" loading="lazy" /></a>
+      <a href="${STARTUP_FAME_HREF}" target="_blank"><img src="${STARTUP_FAME_BADGE_SRC}" alt="${esc(STARTUP_FAME_BADGE_ALT)}" width="${STARTUP_FAME_BADGE_WIDTH}" height="${STARTUP_FAME_BADGE_HEIGHT}" /></a>
     </div>
   </footer>`;
 }

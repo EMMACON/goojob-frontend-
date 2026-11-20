@@ -49,6 +49,12 @@ export const FAZIER_BADGE_ALT = "Fazier badge";
 export const FAZIER_BADGE_WIDTH = 120;
 export const FAZIER_BADGE_HEIGHT = 51;
 
+export const STARTUP_FAME_HREF = "https://startupfa.me/s/goojob?utm_source=www.goojob.io";
+export const STARTUP_FAME_BADGE_SRC = "https://startupfa.me/badges/featured-badge-small.webp";
+export const STARTUP_FAME_BADGE_ALT = "Goojob - Featured on Startup Fame";
+export const STARTUP_FAME_BADGE_WIDTH = 224;
+export const STARTUP_FAME_BADGE_HEIGHT = 36;
+
 export const FOOTER_LINKS = [
   { href: "/", label: "Home" },
   { href: "/about", label: "About" },

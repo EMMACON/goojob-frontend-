@@ -568,14 +568,25 @@ h3.job-title, h3.latest-title { font-size: inherit; font-weight: inherit; line-h
 .footer-featured a {
   display: block;
   line-height: 0;
+  max-width: 100%;
+  overflow: hidden;
   border-radius: 6px;
 }
 
 .footer-featured img {
+  display: block;
+  max-width: 100%;
+  height: auto;
+}
+
+.footer-featured a[href="https://fazier.com"] img {
   width: 120px;
   height: 51px;
-  max-width: 100%;
-  display: block;
+}
+
+.footer-featured a[href="https://startupfa.me/s/goojob?utm_source=www.goojob.io"] img {
+  width: 224px;
+  height: 36px;
 }
 
 .sub-header {

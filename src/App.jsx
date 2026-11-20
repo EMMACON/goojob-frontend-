@@ -16,6 +16,11 @@ import {
   LOGO_HOME_LABEL,
   PAGES,
   SITE_ORIGIN,
+  STARTUP_FAME_BADGE_ALT,
+  STARTUP_FAME_BADGE_HEIGHT,
+  STARTUP_FAME_BADGE_SRC,
+  STARTUP_FAME_BADGE_WIDTH,
+  STARTUP_FAME_HREF,
   SUGGESTIONS,
   SUPPORTING,
   TAGLINE,
@@ -199,6 +204,14 @@ function Footer() {
             height={FAZIER_BADGE_HEIGHT}
             alt={FAZIER_BADGE_ALT}
             loading="lazy"
+          />
+        </a>
+        <a href={STARTUP_FAME_HREF} target="_blank">
+          <img
+            src={STARTUP_FAME_BADGE_SRC}
+            alt={STARTUP_FAME_BADGE_ALT}
+            width={STARTUP_FAME_BADGE_WIDTH}
+            height={STARTUP_FAME_BADGE_HEIGHT}
           />
         </a>
       </div>

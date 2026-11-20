@@ -6,6 +6,8 @@ import {
   DESCRIPTION,
   FAZIER_BADGE_SRC,
   FAZIER_HREF,
+  STARTUP_FAME_BADGE_SRC,
+  STARTUP_FAME_HREF,
   FOOTER_LINKS,
   GA_ID,
   GTM_ID,
@@ -83,7 +85,7 @@ test("footer leads with Home, then About, Privacy, Terms, and Contact", () => {
   );
 });
 
-test("every page footer links to the Fazier badge", () => {
+test("every page footer links to the Fazier and Startup Fame badges", () => {
   const pages = [
     home,
     renderSearch(),
@@ -100,7 +102,18 @@ test("every page footer links to the Fazier badge", () => {
     assert.ok(footer.includes('width="120"'));
     assert.ok(footer.includes('height="51"'));
     assert.ok(footer.includes('loading="lazy"'));
+    assert.ok(footer.includes(`href="${STARTUP_FAME_HREF}"`));
+    assert.ok(footer.includes(STARTUP_FAME_BADGE_SRC));
+    assert.ok(footer.includes('alt="Goojob - Featured on Startup Fame"'));
+    assert.ok(footer.includes('width="224"'));
+    assert.ok(footer.includes('height="36"'));
+    const startup = footer.match(/<a href="https:\/\/startupfa\.me\/s\/goojob\?utm_source=www\.goojob\.io"[^>]*>/);
+    assert.ok(startup, "startup fame anchor");
+    assert.equal(startup[0].includes("nofollow"), false);
+    assert.equal(startup[0].includes("rel="), false);
+    assert.ok(footer.indexOf(`href="${FAZIER_HREF}"`) < footer.indexOf(`href="${STARTUP_FAME_HREF}"`));
     assert.equal(footerNav(html).includes("fazier.com"), false);
+    assert.equal(footerNav(html).includes("startupfa.me"), false);
     assert.ok(footer.indexOf("footer-nav") < footer.indexOf("footer-featured"));
     assert.ok(footer.includes("Featured on"));
   }
