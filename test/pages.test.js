@@ -4,6 +4,8 @@ import test from "node:test";
 import {
   BACK_TO_SEARCH_LABEL,
   DESCRIPTION,
+  FAZIER_BADGE_SRC,
+  FAZIER_HREF,
   FOOTER_LINKS,
   GA_ID,
   GTM_ID,
@@ -61,6 +63,13 @@ function footerNav(html) {
   return match[0];
 }
 
+function footerBlock(html) {
+  const start = html.indexOf('<footer class="site-footer">');
+  const end = html.indexOf("</footer>", start);
+  assert.ok(start >= 0 && end > start, "site footer");
+  return html.slice(start, end);
+}
+
 test("footer leads with Home, then About, Privacy, Terms, and Contact", () => {
   assert.deepEqual(
     FOOTER_LINKS.map((link) => [link.label, link.href]),
@@ -72,6 +81,29 @@ test("footer leads with Home, then About, Privacy, Terms, and Contact", () => {
       ["Contact", "/contact"],
     ]
   );
+});
+
+test("every page footer links to the Fazier badge", () => {
+  const pages = [
+    home,
+    renderSearch(),
+    renderPage("/about"),
+    renderPage("/privacy"),
+    renderPage("/terms"),
+    renderPage("/contact"),
+  ];
+  for (const html of pages) {
+    const footer = footerBlock(html);
+    assert.ok(footer.includes(`href="${FAZIER_HREF}"`));
+    assert.ok(footer.includes(FAZIER_BADGE_SRC));
+    assert.ok(footer.includes('alt="Fazier badge"'));
+    assert.ok(footer.includes('width="120"'));
+    assert.ok(footer.includes('height="51"'));
+    assert.ok(footer.includes('loading="lazy"'));
+    assert.equal(footerNav(html).includes("fazier.com"), false);
+    assert.ok(footer.indexOf("footer-nav") < footer.indexOf("footer-featured"));
+    assert.ok(footer.includes("Featured on"));
+  }
 });
 
 test("search and legal pages are linkable documents", () => {

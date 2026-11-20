@@ -5,6 +5,11 @@ import {
   BRAND_TITLE,
   CHIPS,
   CONTACT_EMAIL,
+  FAZIER_BADGE_ALT,
+  FAZIER_BADGE_HEIGHT,
+  FAZIER_BADGE_SRC,
+  FAZIER_BADGE_WIDTH,
+  FAZIER_HREF,
   FILTERS,
   FOOTER_LINKS,
   HOME_NOTE,
@@ -185,6 +190,18 @@ function Footer() {
         </a>
       </div>
       <p className="footer-copy">© {new Date().getFullYear()} Goojob</p>
+      <div className="footer-featured">
+        <p className="footer-featured-label">Featured on</p>
+        <a href={FAZIER_HREF} target="_blank" rel="noopener">
+          <img
+            src={FAZIER_BADGE_SRC}
+            width={FAZIER_BADGE_WIDTH}
+            height={FAZIER_BADGE_HEIGHT}
+            alt={FAZIER_BADGE_ALT}
+            loading="lazy"
+          />
+        </a>
+      </div>
     </footer>
   );
 }

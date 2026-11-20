@@ -2,6 +2,11 @@ import {
   BACK_TO_SEARCH_LABEL,
   CHIPS,
   CONTACT_EMAIL,
+  FAZIER_BADGE_ALT,
+  FAZIER_BADGE_HEIGHT,
+  FAZIER_BADGE_SRC,
+  FAZIER_BADGE_WIDTH,
+  FAZIER_HREF,
   FILTERS,
   FOOTER_LINKS,
   HOME_NOTE,
@@ -77,6 +82,10 @@ export function footerHtml() {
       <a class="footer-x" href="https://x.com/contactgoojob" target="_blank" rel="noopener noreferrer" aria-label="Goojob on X" title="Follow Goojob on X">${xIcon()}</a>
     </div>
     <p class="footer-copy">© ${year} Goojob</p>
+    <div class="footer-featured">
+      <p class="footer-featured-label">Featured on</p>
+      <a href="${FAZIER_HREF}" target="_blank" rel="noopener"><img src="${FAZIER_BADGE_SRC}" width="${FAZIER_BADGE_WIDTH}" height="${FAZIER_BADGE_HEIGHT}" alt="${esc(FAZIER_BADGE_ALT)}" loading="lazy" /></a>
+    </div>
   </footer>`;
 }
 

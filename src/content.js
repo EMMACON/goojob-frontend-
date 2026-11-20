@@ -41,6 +41,14 @@ export const FILTERS = [
 export const LOGO_HOME_LABEL = "Goojob home";
 export const BACK_TO_SEARCH_LABEL = "← Back to search";
 
+export const FAZIER_HREF = "https://fazier.com";
+export const FAZIER_BADGE_SRC =
+  "https://fazier.com/api/v1//public/badges/launch_badges.svg?badge_type=launched&theme=light";
+export const FAZIER_BADGE_ALT = "Fazier badge";
+// The SVG is 103×44. At the required 120px width the reserved height is 51px.
+export const FAZIER_BADGE_WIDTH = 120;
+export const FAZIER_BADGE_HEIGHT = 51;
+
 export const FOOTER_LINKS = [
   { href: "/", label: "Home" },
   { href: "/about", label: "About" },

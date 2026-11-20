@@ -550,6 +550,34 @@ h3.job-title, h3.latest-title { font-size: inherit; font-weight: inherit; line-h
 
 .footer-copy { font-size: 13px; color: var(--muted); }
 
+.footer-featured {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-wrap: wrap;
+  gap: 8px 10px;
+  max-width: 100%;
+}
+
+.footer-featured-label {
+  font-size: 12px;
+  font-weight: 500;
+  color: var(--muted);
+}
+
+.footer-featured a {
+  display: block;
+  line-height: 0;
+  border-radius: 6px;
+}
+
+.footer-featured img {
+  width: 120px;
+  height: 51px;
+  max-width: 100%;
+  display: block;
+}
+
 .sub-header {
   display: flex;
   align-items: center;
