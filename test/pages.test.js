@@ -4,6 +4,8 @@ import test from "node:test";
 import {
   BACK_TO_SEARCH_LABEL,
   DESCRIPTION,
+  ANOTHER_DIRECTORY_BADGE_SRC,
+  ANOTHER_DIRECTORY_HREF,
   FAZIER_BADGE_SRC,
   FAZIER_HREF,
   STARTUP_FAME_BADGE_SRC,
@@ -85,7 +87,7 @@ test("footer leads with Home, then About, Privacy, Terms, and Contact", () => {
   );
 });
 
-test("every page footer links to the Fazier and Startup Fame badges", () => {
+test("every page footer links to the featured badges", () => {
   const pages = [
     home,
     renderSearch(),
@@ -111,9 +113,22 @@ test("every page footer links to the Fazier and Startup Fame badges", () => {
     assert.ok(startup, "startup fame anchor");
     assert.equal(startup[0].includes("nofollow"), false);
     assert.equal(startup[0].includes("rel="), false);
+    assert.ok(footer.includes(`href="${ANOTHER_DIRECTORY_HREF}"`));
+    assert.ok(footer.includes(ANOTHER_DIRECTORY_BADGE_SRC));
+    assert.ok(footer.includes('title="Listed on Another Directory"'));
+    assert.ok(footer.includes('alt="Listed on Another Directory"'));
+    assert.ok(footer.includes('width="214"'));
+    assert.ok(footer.includes('height="48"'));
+    const directory = footer.match(/<a href="https:\/\/another\.directory\/tools\/goojob"[^>]*>/);
+    assert.ok(directory, "another directory anchor");
+    assert.equal(directory[0].includes("nofollow"), false);
+    assert.equal(directory[0].includes("rel="), false);
+    assert.equal(directory[0].includes("target="), false);
     assert.ok(footer.indexOf(`href="${FAZIER_HREF}"`) < footer.indexOf(`href="${STARTUP_FAME_HREF}"`));
+    assert.ok(footer.indexOf(`href="${STARTUP_FAME_HREF}"`) < footer.indexOf(`href="${ANOTHER_DIRECTORY_HREF}"`));
     assert.equal(footerNav(html).includes("fazier.com"), false);
     assert.equal(footerNav(html).includes("startupfa.me"), false);
+    assert.equal(footerNav(html).includes("another.directory"), false);
     assert.ok(footer.indexOf("footer-nav") < footer.indexOf("footer-featured"));
     assert.ok(footer.includes("Featured on"));
   }

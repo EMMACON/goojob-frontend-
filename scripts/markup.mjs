@@ -1,4 +1,10 @@
 import {
+  ANOTHER_DIRECTORY_BADGE_ALT,
+  ANOTHER_DIRECTORY_BADGE_HEIGHT,
+  ANOTHER_DIRECTORY_BADGE_SRC,
+  ANOTHER_DIRECTORY_BADGE_WIDTH,
+  ANOTHER_DIRECTORY_HREF,
+  ANOTHER_DIRECTORY_TITLE,
   BACK_TO_SEARCH_LABEL,
   CHIPS,
   CONTACT_EMAIL,
@@ -91,6 +97,7 @@ export function footerHtml() {
       <p class="footer-featured-label">Featured on</p>
       <a href="${FAZIER_HREF}" target="_blank" rel="noopener"><img src="${FAZIER_BADGE_SRC}" width="${FAZIER_BADGE_WIDTH}" height="${FAZIER_BADGE_HEIGHT}" alt="${esc(FAZIER_BADGE_ALT)}" loading="lazy" /></a>
       <a href="${STARTUP_FAME_HREF}" target="_blank"><img src="${STARTUP_FAME_BADGE_SRC}" alt="${esc(STARTUP_FAME_BADGE_ALT)}" width="${STARTUP_FAME_BADGE_WIDTH}" height="${STARTUP_FAME_BADGE_HEIGHT}" /></a>
+      <a href="${ANOTHER_DIRECTORY_HREF}" title="${esc(ANOTHER_DIRECTORY_TITLE)}"><img src="${ANOTHER_DIRECTORY_BADGE_SRC}" alt="${esc(ANOTHER_DIRECTORY_BADGE_ALT)}" width="${ANOTHER_DIRECTORY_BADGE_WIDTH}" height="${ANOTHER_DIRECTORY_BADGE_HEIGHT}"></a>
     </div>
   </footer>`;
 }

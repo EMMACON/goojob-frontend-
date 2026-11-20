@@ -1,6 +1,12 @@
 import { useEffect, useRef, useState } from "react";
 import { getRecentJobs, logJobClick, searchJobs } from "./api";
 import {
+  ANOTHER_DIRECTORY_BADGE_ALT,
+  ANOTHER_DIRECTORY_BADGE_HEIGHT,
+  ANOTHER_DIRECTORY_BADGE_SRC,
+  ANOTHER_DIRECTORY_BADGE_WIDTH,
+  ANOTHER_DIRECTORY_HREF,
+  ANOTHER_DIRECTORY_TITLE,
   BACK_TO_SEARCH_LABEL,
   BRAND_TITLE,
   CHIPS,
@@ -212,6 +218,14 @@ function Footer() {
             alt={STARTUP_FAME_BADGE_ALT}
             width={STARTUP_FAME_BADGE_WIDTH}
             height={STARTUP_FAME_BADGE_HEIGHT}
+          />
+        </a>
+        <a href={ANOTHER_DIRECTORY_HREF} title={ANOTHER_DIRECTORY_TITLE}>
+          <img
+            src={ANOTHER_DIRECTORY_BADGE_SRC}
+            alt={ANOTHER_DIRECTORY_BADGE_ALT}
+            width={ANOTHER_DIRECTORY_BADGE_WIDTH}
+            height={ANOTHER_DIRECTORY_BADGE_HEIGHT}
           />
         </a>
       </div>
